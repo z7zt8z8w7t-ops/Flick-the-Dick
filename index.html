@@ -1,0 +1,1777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="theme-color" content="#1a0a1a">
+    <title>Flick the Dick - The Wank Bank</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a0a1a 0%, #2d1b2d 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 12px;
+            overflow-x: hidden;
+        }
+
+        .screen {
+            display: none;
+            width: 100%;
+            max-width: 500px;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            animation: fadeIn 0.5s;
+        }
+
+        .screen.active { display: flex; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        h1 {
+            font-size: 2.45em;
+            text-align: center;
+            background: linear-gradient(45deg, #ff69b4, #ff1493);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 3px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            color: #ff69b4;
+            font-size: 1.05em;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .tap-hint {
+            color: #ff69b4;
+            font-size: 1.1em;
+            animation: pulseText 2s infinite;
+            cursor: pointer;
+        }
+
+        @keyframes pulseText {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .score-board {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            background: rgba(255, 105, 180, 0.1);
+            border-radius: 12px;
+            padding: 8px 10px;
+            border: 2px solid #ff69b4;
+        }
+
+        .player-score { text-align: center; }
+
+        .player-name {
+            font-size: 1.08em;
+            font-weight: bold;
+            color: #ff69b4;
+        }
+
+        .score-details {
+            font-size: 0.78em;
+            margin-top: 2px;
+        }
+
+        .banked {
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        .unbanked {
+            color: #ff69b4;
+            font-weight: bold;
+        }
+
+        /* ---------- SPINNER ---------- */
+
+        .spinner-container {
+            position: relative;
+            width: min(82vw, 340px);
+            height: min(82vw, 340px);
+            margin: 8px 0 54px;
+            flex: 0 0 auto;
+        }
+
+        .spinner-wheel {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 4px solid #fff;
+            box-shadow:
+                0 0 22px rgba(255,105,180,0.55),
+                inset 0 0 22px rgba(0,0,0,0.28);
+
+            /*
+              Clockwise from the top:
+              Emma = top-right/top sector
+              Jim   = right/bottom-right sector
+              Both  = bottom/left-bottom sector
+              Bust  = left/top-left sector
+            */
+            background:
+                conic-gradient(
+                    from -45deg,
+                    #9932cc 0deg 90deg,
+                    #4169e1 90deg 180deg,
+                    #dc143c 180deg 270deg,
+                    #ff69b4 270deg 360deg
+                );
+        }
+
+        .spinner-wheel::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background:
+                radial-gradient(circle at center,
+                    rgba(255,255,255,0.11) 0 32%,
+                    transparent 33% 100%);
+            pointer-events: none;
+        }
+
+        .wheel-label {
+            position: absolute;
+            z-index: 2;
+            font-weight: 800;
+            font-size: 1.1em;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.8);
+            transform: translate(-50%, -50%);
+            user-select: none;
+        }
+
+        .wheel-label.both { top: 15%; left: 50%; }
+        .wheel-label.jim  { top: 50%; left: 85%; }
+        .wheel-label.bust { top: 85%; left: 50%; }
+        .wheel-label.emma { top: 50%; left: 15%; }
+
+        /*
+          Rotating assembly.
+          Its centre is exactly the centre of the wheel.
+          Positive CSS rotation is clockwise.
+        */
+        .willy-rotor {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 1px;
+            height: 1px;
+            z-index: 12;
+            transform: rotate(270deg);
+            transform-origin: 0 0;
+            will-change: transform;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            touch-action: none;
+        }
+
+        .willy-rotor.dragging {
+            cursor: grabbing;
+        }
+
+        .willy-rotor.spinning {
+            transition: transform 3.25s cubic-bezier(0.10, 0.74, 0.16, 1);
+        }
+
+        /*
+          Cartoon spinner points to the RIGHT when rotor angle is 0deg.
+          Pivot sits at the base/centre of the shape.
+        */
+        .willy {
+            position: absolute;
+            left: -38px;
+            top: -41px;
+            width: 178px;
+            height: 82px;
+            filter: drop-shadow(0 7px 9px rgba(0,0,0,0.38));
+            transform: translateZ(0) rotate(-3deg);
+            touch-action: none;
+            cursor: grab;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .willy:active {
+            cursor: grabbing;
+        }
+
+        /*
+          Improved cheeky caricature:
+          smoother single-character silhouette, softer joins,
+          more natural curve, stronger shading, less "assembled".
+        */
+        .willy-shaft {
+            position: absolute;
+            left: 42px;
+            top: 20px;
+            width: 106px;
+            height: 44px;
+            border-radius: 31px 21px 22px 31px;
+            background:
+                linear-gradient(180deg,
+                    #ffd8df 0%,
+                    #ffb2c3 34%,
+                    #ff8daa 68%,
+                    #ef7295 100%);
+            border: 3px solid #aa2f5d;
+            box-shadow:
+                inset 0 7px 8px rgba(255,255,255,0.34),
+                inset 0 -7px 8px rgba(100,0,35,0.12);
+            transform: rotate(-5deg) skewX(-2deg);
+            transform-origin: left center;
+        }
+
+        .willy-shaft::before {
+            content: "";
+            position: absolute;
+            left: -10px;
+            top: 6px;
+            width: 28px;
+            height: 30px;
+            border-radius: 45% 55% 55% 45%;
+            background: inherit;
+            border-left: 3px solid #aa2f5d;
+            transform: rotate(3deg);
+        }
+
+        .willy-shaft::after {
+            content: "";
+            position: absolute;
+            left: 18px;
+            top: 7px;
+            width: 58px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.20);
+            transform: rotate(-4deg);
+        }
+
+        .willy-head {
+            position: absolute;
+            right: 0;
+            top: 12px;
+            width: 52px;
+            height: 58px;
+            border-radius: 56% 62% 60% 52%;
+            background:
+                linear-gradient(180deg,
+                    #ffb8ca 0%,
+                    #ff91ae 58%,
+                    #ed6d94 100%);
+            border: 3px solid #aa2f5d;
+            box-shadow:
+                inset 6px 4px 7px rgba(255,255,255,0.25),
+                inset -4px -5px 6px rgba(100,0,35,0.10);
+            transform: rotate(-4deg);
+        }
+
+        .willy-head::before {
+            content: "";
+            position: absolute;
+            left: 5px;
+            top: 7px;
+            width: 11px;
+            height: 38px;
+            border-radius: 50%;
+            border-left: 2px solid rgba(145,35,75,0.34);
+        }
+
+        .willy-head::after {
+            content: "";
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            width: 5px;
+            height: 12px;
+            transform: translateY(-50%);
+            border-radius: 50%;
+            background: rgba(135,28,67,0.62);
+        }
+
+        .ball {
+            position: absolute;
+            left: 3px;
+            width: 46px;
+            height: 46px;
+            border-radius: 55% 45% 58% 42%;
+            background:
+                linear-gradient(180deg,
+                    #ffd9e0 0%,
+                    #ffafc0 55%,
+                    #ee7a99 100%);
+            border: 3px solid #aa2f5d;
+            box-shadow:
+                inset 5px 6px 7px rgba(255,255,255,0.25);
+        }
+
+        .ball.top {
+            top: 1px;
+            transform: rotate(-12deg);
+        }
+
+        .ball.bottom {
+            bottom: 1px;
+            transform: rotate(12deg);
+        }
+
+        .eye {
+            position: absolute;
+            top: 27px;
+            width: 6px;
+            height: 9px;
+            border-radius: 50%;
+            background: #431528;
+            z-index: 3;
+        }
+
+        .eye.one { left: 103px; }
+        .eye.two { left: 118px; }
+
+        .eye::after {
+            content: "";
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            top: 1px;
+            left: 1px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.92);
+        }
+
+        .smile {
+            position: absolute;
+            left: 108px;
+            top: 41px;
+            width: 18px;
+            height: 10px;
+            border-bottom: 3px solid #431528;
+            border-radius: 0 0 18px 18px;
+            z-index: 3;
+            transform: rotate(-3deg);
+        }
+
+        .center-dot {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 22px;
+            height: 22px;
+            background: #fff;
+            border-radius: 50%;
+            z-index: 18;
+            border: 3px solid #ff69b4;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.35);
+            pointer-events: none;
+        }
+
+        .result-display {
+            position: absolute;
+            bottom: -38px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.55em;
+            font-weight: bold;
+            color: #ffd700;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.35s, transform 0.35s;
+            white-space: nowrap;
+        }
+
+        .result-display.show {
+            opacity: 1;
+            transform: translateX(-50%) scale(1.08);
+        }
+
+        .legend {
+            position: absolute;
+            top: calc(100% + 38px);
+            left: 50%;
+            transform: translateX(-50%);
+            width: max-content;
+            max-width: 95vw;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            font-size: 0.88em;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 3px;
+        }
+
+        /* ---------- REST OF GAME ---------- */
+
+        .card-display {
+            background: rgba(255, 255, 255, 0.1);
+            border: 3px solid #ff69b4;
+            border-radius: 14px;
+            padding: 12px 14px;
+            text-align: center;
+            min-height: 78px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.05em;
+            margin: 4px 0;
+            width: 100%;
+        }
+
+        .card-display.spin-prompt {
+            cursor: pointer;
+            touch-action: manipulation;
+            border-color: #ffd700;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            box-shadow: 0 0 14px rgba(255, 215, 0, 0.16);
+        }
+
+        .card-display.spin-prompt:active {
+            transform: scale(0.985);
+        }
+
+        .timer-display {
+            font-size: 2.6em;
+            color: #ffd700;
+            text-align: center;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .timer-bar {
+            width: 100%;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .timer-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #ff69b4, #ffd700);
+            transition: width 1s linear;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #ff69b4, #ff1493);
+            border: none;
+            color: white;
+            padding: 10px 22px;
+            font-size: 1em;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin: 5px;
+            touch-action: manipulation;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(255, 105, 180, 0.5);
+        }
+
+        .btn:active { transform: scale(0.95); }
+
+        .btn:disabled {
+            opacity: 0.55;
+            cursor: default;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #4169e1, #6495ed);
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #dc143c, #ff4444);
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #32cd32, #228b22);
+        }
+
+        .btn-large {
+            padding: 13px 30px;
+            font-size: 1.12em;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+        }
+
+        input {
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #ff69b4;
+            background: rgba(255, 105, 180, 0.1);
+            color: white;
+            font-size: 1.1em;
+        }
+
+        input::placeholder {
+            color: #ff69b4;
+            opacity: 0.7;
+        }
+
+        .turn-indicator {
+            font-size: 1.12em;
+            color: #ffd700;
+            text-align: center;
+            margin-bottom: 1px;
+        }
+
+        .bust-message {
+            font-size: 3em;
+            color: #dc143c;
+            text-align: center;
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .win-message {
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #ffd700, #ff69b4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+        }
+
+        .prize-text {
+            font-size: 1.2em;
+            color: #ff69b4;
+            text-align: center;
+            margin: 20px;
+            padding: 20px;
+            border: 2px solid #ff69b4;
+            border-radius: 15px;
+            background: rgba(255, 105, 180, 0.1);
+        }
+
+        .deck-info {
+            font-size: 0.72em;
+            color: #ff69b4;
+            text-align: center;
+            margin-top: 1px;
+        }
+
+        @media (max-width: 380px) {
+            h1 { font-size: 2.55em; }
+            .btn-large { padding: 17px 38px; font-size: 1.25em; }
+            .legend { gap: 8px; font-size: 0.8em; }
+        }
+
+
+        @media (max-height: 760px) {
+            body {
+                padding-top: 5px;
+                padding-bottom: 5px;
+            }
+
+            .screen { gap: 5px; }
+
+            .score-board {
+                padding: 6px 8px;
+            }
+
+            .turn-indicator {
+                font-size: 1em;
+                margin-bottom: 0;
+            }
+
+            .card-display {
+                min-height: 70px;
+                padding: 9px 12px;
+            }
+
+            .timer-display {
+                font-size: 2.25em;
+                margin: 2px 0;
+            }
+
+            .timer-bar {
+                margin: 2px 0;
+            }
+
+            .deck-info {
+                font-size: 0.66em;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .willy-rotor.spinning { transition-duration: 1s; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Screen 0: Splash -->
+    <div id="splash-screen" class="screen active" onclick="showStart()">
+        <h1>Flick the Dick</h1>
+        <p class="subtitle">The Wank Bank</p>
+        <p class="subtitle">Flick it to win it</p>
+        <br><br>
+        <p class="tap-hint">Tap anywhere to start</p>
+    </div>
+
+    <!-- Screen 1: Start -->
+    <div id="start-screen" class="screen">
+        <h1>Flick the Dick</h1>
+        <p class="subtitle">The Wank Bank</p>
+
+        <div class="input-group">
+            <input type="text" id="player1-name" placeholder="Player 1 name" value="Emma">
+            <input type="text" id="player2-name" placeholder="Player 2 name" value="Jim">
+        </div>
+
+        <p style="text-align:center; margin:20px 0; color:#ff69b4; font-size:1.2em;">
+            First to 8 banked points wins!
+        </p>
+
+        <button class="btn btn-large" onclick="startGame()">Start Game</button>
+    </div>
+
+    <!-- Screen 2: Game -->
+    <div id="game-screen" class="screen">
+
+        <div class="score-board">
+            <div class="player-score">
+                <div class="player-name" id="p1-display">Emma</div>
+                <div class="score-details">
+                    <span class="banked" id="p1-banked">0 banked</span><br>
+                    <span class="unbanked" id="p1-unbanked">0 unbanked</span>
+                </div>
+            </div>
+
+            <div class="player-score">
+                <div class="player-name" id="p2-display">Jim</div>
+                <div class="score-details">
+                    <span class="banked" id="p2-banked">0 banked</span><br>
+                    <span class="unbanked" id="p2-unbanked">0 unbanked</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="turn-indicator" id="turn-indicator">Emma's Turn</div>
+
+        <div class="spinner-container" id="spinner-container" style="display:none;">
+            <div class="spinner-wheel">
+                <div class="wheel-label emma">Emma</div>
+                <div class="wheel-label jim">Jim</div>
+                <div class="wheel-label both">Both</div>
+                <div class="wheel-label bust">Bust</div>
+            </div>
+
+            <div class="willy-rotor" id="willy-rotor">
+                <div class="willy" aria-hidden="true">
+                    <div class="ball top"></div>
+                    <div class="ball bottom"></div>
+                    <div class="willy-shaft"></div>
+                    <div class="willy-head"></div>
+                    <div class="eye one"></div>
+                    <div class="eye two"></div>
+                    <div class="smile"></div>
+                </div>
+            </div>
+
+            <div class="center-dot"></div>
+
+            <div class="result-display" id="result-display"></div>
+
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background:#ff69b4;"></div>
+                    <span>Emma</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background:#4169e1;"></div>
+                    <span>Jim</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background:#9932cc;"></div>
+                    <span>Both</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background:#dc143c;"></div>
+                    <span>Bust</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-display" id="card-display" style="display:none;">
+            <p id="card-text">Draw a card...</p>
+        </div>
+
+        <div class="timer-display" id="timer-display" style="display:none;">30</div>
+
+        <div class="timer-bar" id="timer-bar" style="display:none;">
+            <div class="timer-progress" id="timer-progress"></div>
+        </div>
+
+        <div class="button-row" id="action-buttons"></div>
+
+        <div class="deck-info" id="deck-info"></div>
+    </div>
+
+    <!-- Screen 3: Bust -->
+    <div id="bust-screen" class="screen">
+        <div class="bust-message">💥 BUST! 💥</div>
+
+        <p id="bust-points-lost"
+           style="font-size:1.5em; text-align:center; margin:20px 0;"></p>
+
+        <p style="text-align:center; color:#ff69b4; font-size:1.2em;">
+            All completed cards returned to deck!
+        </p>
+
+        <br>
+        <button class="btn btn-large" onclick="continueAfterBust()">Continue</button>
+    </div>
+
+    <!-- Screen 4: Win -->
+    <div id="win-screen" class="screen">
+        <div class="win-message">🎉 Winner! 🎉</div>
+
+        <p id="winner-name"
+           style="font-size:2em; text-align:center; margin:20px 0;"></p>
+
+        <div class="prize-text">
+            The loser must obey every command the winner makes for 24 hours<br>
+            <strong>Starting from when the winner says</strong>
+        </div>
+
+        <p style="text-align:center; color:#ff69b4; font-size:1.3em;">
+            Claim your prize! 😈
+        </p>
+
+        <br>
+        <button class="btn btn-large" onclick="resetGame()">Play Again</button>
+    </div>
+
+    <script>
+        // ------------------------------------------------------------
+        // AUDIO
+        // ------------------------------------------------------------
+
+        let audioCtx = null;
+
+        function ensureAudio() {
+            if (!audioCtx) {
+                const AC = window.AudioContext || window.webkitAudioContext;
+                if (AC) audioCtx = new AC();
+            }
+
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume().catch(() => {});
+            }
+        }
+
+        function playSound(type) {
+            ensureAudio();
+            if (!audioCtx) return;
+
+            try {
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+
+                switch(type) {
+                    case 'spin':
+                        oscillator.frequency.value = 210;
+                        oscillator.type = 'sine';
+                        gainNode.gain.setValueAtTime(0.22, now);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+                        oscillator.start(now);
+                        oscillator.stop(now + 0.12);
+                        break;
+
+                    case 'alarm':
+                        oscillator.frequency.value = 800;
+                        oscillator.type = 'square';
+                        gainNode.gain.setValueAtTime(0.35, now);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                        oscillator.start(now);
+                        oscillator.stop(now + 0.5);
+                        break;
+
+                    case 'bank':
+                        oscillator.frequency.value = 600;
+                        oscillator.type = 'sine';
+                        gainNode.gain.setValueAtTime(0.25, now);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                        oscillator.start(now);
+                        oscillator.stop(now + 0.3);
+                        break;
+
+                    case 'bust':
+                        oscillator.frequency.value = 150;
+                        oscillator.type = 'sawtooth';
+                        gainNode.gain.setValueAtTime(0.35, now);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+                        oscillator.start(now);
+                        oscillator.stop(now + 0.8);
+                        break;
+
+                    case 'win':
+                        oscillator.frequency.value = 523;
+                        oscillator.type = 'sine';
+                        gainNode.gain.setValueAtTime(0.25, now);
+                        oscillator.frequency.setValueAtTime(523, now);
+                        oscillator.frequency.setValueAtTime(659, now + 0.1);
+                        oscillator.frequency.setValueAtTime(784, now + 0.2);
+                        oscillator.frequency.setValueAtTime(1047, now + 0.3);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 1);
+                        oscillator.start(now);
+                        oscillator.stop(now + 1);
+                        break;
+                }
+            } catch (e) {
+                console.warn('Audio unavailable:', e);
+            }
+        }
+
+
+        // ------------------------------------------------------------
+        // GAME STATE
+        // ------------------------------------------------------------
+
+        let player1 = {
+            name: 'Emma',
+            banked: 0,
+            unbanked: 0,
+            completedCards: []
+        };
+
+        let player2 = {
+            name: 'Jim',
+            banked: 0,
+            unbanked: 0,
+            completedCards: []
+        };
+
+        let currentPlayer = null;
+        let otherPlayer = null;
+        let currentCard = null;
+        let currentDeck = null;
+        let actionPlayer = null;      // Person whose named card is being performed
+        let nextPlayer = null;        // Person who gets the next spin after this card
+        let spinOwner = null;         // Person who made the current spin
+        let isSpinning = false;
+
+        // Physical flick state
+        let isDraggingSpinner = false;
+        let activePointerId = null;
+        let lastPointerAngle = 0;
+        let lastPointerTime = 0;
+        let angularVelocity = 0;       // degrees per millisecond
+        let dragTravel = 0;
+
+        let timerInterval = null;
+        let timeRemaining = 30;
+
+        // Persistent spinner rotation.
+        // Starts pointing UP at Both.
+        let currentRotation = 270;
+
+
+        // ------------------------------------------------------------
+        // DECKS
+        // ------------------------------------------------------------
+
+        const emmasDeck = [
+            "Give him a blowjob",
+            "Give him a handjob",
+            "Give him a blowjob while playing with his balls and teasing his ass",
+            "Play with his nipples",
+            "Tease his ass",
+            "Play with his balls",
+            "Kiss his whole body",
+            "Talk dirty to him whilst teasing the tip of his cock",
+            "Edge him",
+            "Deep throat him",
+            "Sit on his face and grind"
+        ];
+
+        const jimsDeck = [
+            "Go down on her",
+            "Finger her",
+            "Rub her clit",
+            "Play with her breasts",
+            "Kiss her neck",
+            "Spank her",
+            "Tease her ass",
+            "Lick her from behind",
+            "Kiss her whole body",
+            "Lick her clit, rub her g-spot, and finger her ass simultaneously",
+            "Lick her while she sits on your face"
+        ];
+
+        const bothDeck = [
+            "69 each other",
+            "Take turns giving oral",
+            "Masturbate each other",
+            "Have sex missionary style",
+            "Have sex with her on top",
+            "Have sex from behind",
+            "Have spooning sex",
+            "Have standing sex",
+            "Edge each other",
+            "Make each other cum at the same time",
+            "Masturbate at the same time while watching each other"
+        ];
+
+        let emmasDeckCurrent = [...emmasDeck];
+        let jimsDeckCurrent = [...jimsDeck];
+        let bothDeckCurrent = [...bothDeck];
+
+
+        // ------------------------------------------------------------
+        // SCREENS
+        // ------------------------------------------------------------
+
+        function showStart() {
+            ensureAudio();
+            document.getElementById('splash-screen').classList.remove('active');
+            document.getElementById('start-screen').classList.add('active');
+        }
+
+        function startGame() {
+            ensureAudio();
+
+            player1.name =
+                document.getElementById('player1-name').value.trim() || 'Emma';
+
+            player2.name =
+                document.getElementById('player2-name').value.trim() || 'Jim';
+
+            document.getElementById('p1-display').textContent = player1.name;
+            document.getElementById('p2-display').textContent = player2.name;
+
+            // Update spinner labels to match names.
+            document.querySelector('.wheel-label.emma').textContent = player1.name;
+            document.querySelector('.wheel-label.jim').textContent = player2.name;
+
+            emmasDeckCurrent = [...emmasDeck];
+            jimsDeckCurrent = [...jimsDeck];
+            bothDeckCurrent = [...bothDeck];
+
+            player1.banked = 0;
+            player1.unbanked = 0;
+            player1.completedCards = [];
+
+            player2.banked = 0;
+            player2.unbanked = 0;
+            player2.completedCards = [];
+
+            currentRotation = 270;
+            actionPlayer = null;
+            nextPlayer = null;
+            spinOwner = null;
+
+            const rotor = document.getElementById('willy-rotor');
+            rotor.classList.remove('spinning', 'dragging');
+            rotor.style.transition = 'none';
+            rotor.style.transform = `rotate(${currentRotation}deg)`;
+
+            updateScores();
+
+            currentPlayer = player1;
+            otherPlayer = player2;
+
+            document.getElementById('start-screen').classList.remove('active');
+            document.getElementById('game-screen').classList.add('active');
+
+            updateTurnIndicator();
+            updateDeckInfo();
+            showSpinReady();
+        }
+
+
+        // ------------------------------------------------------------
+        // UI
+        // ------------------------------------------------------------
+
+        function updateScores() {
+            document.getElementById('p1-banked').textContent =
+                player1.banked + ' banked';
+
+            document.getElementById('p1-unbanked').textContent =
+                player1.unbanked + ' unbanked';
+
+            document.getElementById('p2-banked').textContent =
+                player2.banked + ' banked';
+
+            document.getElementById('p2-unbanked').textContent =
+                player2.unbanked + ' unbanked';
+        }
+
+        function updateTurnIndicator() {
+            document.getElementById('turn-indicator').textContent =
+                currentPlayer.name + "'s Turn";
+        }
+
+        function updateDeckInfo() {
+            const info =
+                `${player1.name}'s deck: ${emmasDeckCurrent.length} | ` +
+                `${player2.name}'s deck: ${jimsDeckCurrent.length} | ` +
+                `Both: ${bothDeckCurrent.length}`;
+
+            document.getElementById('deck-info').textContent = info;
+        }
+
+
+        // ------------------------------------------------------------
+        // PHYSICAL TOUCH / FLICK SPINNER
+        // ------------------------------------------------------------
+
+        /*
+          Result numbers:
+          0 = Emma / Player 1  (left)
+          1 = Jim / Player 2   (right)
+          2 = Both             (top)
+          3 = Bust             (bottom)
+
+          Willy points RIGHT at 0 degrees.
+          CSS positive rotation goes clockwise.
+        */
+
+        const sectorCentre = {
+            0: 180, // Emma - left
+            1: 0,   // Jim - right
+            2: 270, // Both - top
+            3: 90   // Bust - bottom
+        };
+
+        function normaliseAngle(angle) {
+            return ((angle % 360) + 360) % 360;
+        }
+
+        function shortestAngleDelta(from, to) {
+            let delta = normaliseAngle(to) - normaliseAngle(from);
+
+            if (delta > 180) delta -= 360;
+            if (delta < -180) delta += 360;
+
+            return delta;
+        }
+
+        function resultFromAngle(angle) {
+            const a = normaliseAngle(angle);
+
+            // Right = Jim
+            if (a >= 315 || a < 45) return 1;
+
+            // Bottom = Bust
+            if (a >= 45 && a < 135) return 3;
+
+            // Left = Emma
+            if (a >= 135 && a < 225) return 0;
+
+            // Top = Both
+            return 2;
+        }
+
+        function clearCardPromptMode() {
+            const card = document.getElementById('card-display');
+            card.classList.remove('spin-prompt');
+            card.onclick = null;
+        }
+
+        function showSpinReady() {
+            const rotor = document.getElementById('willy-rotor');
+
+            isSpinning = false;
+            isDraggingSpinner = false;
+            activePointerId = null;
+            angularVelocity = 0;
+            dragTravel = 0;
+
+            rotor.classList.remove('spinning', 'dragging');
+            rotor.style.transition = 'none';
+            rotor.style.transform = `rotate(${currentRotation}deg)`;
+
+            document.getElementById('spinner-container').style.display = 'block';
+
+            const card = document.getElementById('card-display');
+            card.style.display = 'flex';
+            card.classList.add('spin-prompt');
+            card.onclick = giveItAFlick;
+
+            document.getElementById('card-text').textContent =
+                'Go On Flick that Dick';
+
+            document.getElementById('action-buttons').innerHTML = '';
+
+            document.getElementById('timer-display').style.display = 'none';
+            document.getElementById('timer-bar').style.display = 'none';
+            document.getElementById('result-display').classList.remove('show');
+        }
+
+        function pointerAngle(event) {
+            const wheel = document.getElementById('spinner-container');
+            const rect = wheel.getBoundingClientRect();
+
+            const centreX = rect.left + rect.width / 2;
+            const centreY = rect.top + rect.height / 2;
+
+            return Math.atan2(
+                event.clientY - centreY,
+                event.clientX - centreX
+            ) * 180 / Math.PI;
+        }
+
+        function beginPhysicalFlick(event) {
+            if (isSpinning) return;
+            if (!document.getElementById('game-screen').classList.contains('active')) return;
+
+            ensureAudio();
+
+            const rotor = document.getElementById('willy-rotor');
+
+            isDraggingSpinner = true;
+            activePointerId = event.pointerId;
+            spinOwner = currentPlayer;
+            angularVelocity = 0;
+            dragTravel = 0;
+
+            lastPointerAngle = pointerAngle(event);
+            lastPointerTime = performance.now();
+
+            rotor.classList.remove('spinning');
+            rotor.classList.add('dragging');
+            rotor.style.transition = 'none';
+
+            try {
+                rotor.setPointerCapture(event.pointerId);
+            } catch (e) {
+                // Safe fallback for older iOS implementations.
+            }
+
+            event.preventDefault();
+        }
+
+        function movePhysicalFlick(event) {
+            if (!isDraggingSpinner || event.pointerId !== activePointerId) return;
+
+            const now = performance.now();
+            const angle = pointerAngle(event);
+            const delta = shortestAngleDelta(lastPointerAngle, angle);
+            const dt = Math.max(8, now - lastPointerTime);
+
+            currentRotation += delta;
+            dragTravel += Math.abs(delta);
+
+            const instantVelocity = delta / dt;
+
+            // Smooth noisy finger movement while preserving direction.
+            angularVelocity =
+                (angularVelocity * 0.58) +
+                (instantVelocity * 0.42);
+
+            // Avoid extreme values from a single erratic pointer sample.
+            angularVelocity = Math.max(
+                -2.4,
+                Math.min(2.4, angularVelocity)
+            );
+
+            document.getElementById('willy-rotor').style.transform =
+                `rotate(${currentRotation}deg)`;
+
+            lastPointerAngle = angle;
+            lastPointerTime = now;
+
+            event.preventDefault();
+        }
+
+        function endPhysicalFlick(event) {
+            if (!isDraggingSpinner || event.pointerId !== activePointerId) return;
+
+            const rotor = document.getElementById('willy-rotor');
+
+            isDraggingSpinner = false;
+            activePointerId = null;
+            rotor.classList.remove('dragging');
+
+            try {
+                rotor.releasePointerCapture(event.pointerId);
+            } catch (e) {}
+
+            /*
+              If somebody only taps/holds the spinner rather than actually
+              flicking it, leave it where it is. The prompt can still be
+              tapped to trigger the fallback spin.
+            */
+            if (Math.abs(angularVelocity) < 0.08 || dragTravel < 7) {
+                angularVelocity = 0;
+                return;
+            }
+
+            spinFromVelocity(angularVelocity);
+            event.preventDefault();
+        }
+
+        function spinFromVelocity(velocity) {
+            if (isSpinning) return;
+
+            ensureAudio();
+            isSpinning = true;
+
+            if (!spinOwner) spinOwner = currentPlayer;
+
+            clearCardPromptMode();
+            document.getElementById('card-display').style.display = 'none';
+            document.getElementById('result-display').classList.remove('show');
+
+            playSound('spin');
+
+            /*
+              Convert the user's release speed into coast distance.
+              A real quick flick produces several full turns, while a softer
+              flick makes a noticeably shorter spin.
+            */
+            const sign = velocity < 0 ? -1 : 1;
+            const speed = Math.abs(velocity);
+
+            let coastDistance = speed * 1900;
+            coastDistance = Math.max(540, Math.min(3600, coastDistance));
+
+            currentRotation += sign * coastDistance;
+
+            const duration =
+                Math.max(1700, Math.min(3900, 1250 + speed * 1200));
+
+            const rotor = document.getElementById('willy-rotor');
+
+            rotor.classList.add('spinning');
+            rotor.style.transition =
+                `transform ${duration}ms cubic-bezier(0.08, 0.68, 0.14, 1)`;
+
+            let finished = false;
+
+            const finishSpin = () => {
+                if (finished) return;
+                finished = true;
+
+                rotor.removeEventListener('transitionend', onTransitionEnd);
+                rotor.classList.remove('spinning');
+                rotor.style.transition = 'none';
+
+                isSpinning = false;
+                angularVelocity = 0;
+                dragTravel = 0;
+
+                const result = resultFromAngle(currentRotation);
+
+                showResult(result);
+
+                setTimeout(() => {
+                    handleSpinResult(result);
+                }, 750);
+            };
+
+            const onTransitionEnd = (evt) => {
+                if (evt.propertyName === 'transform') {
+                    finishSpin();
+                }
+            };
+
+            rotor.addEventListener('transitionend', onTransitionEnd);
+
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    rotor.style.transform =
+                        `rotate(${currentRotation}deg)`;
+                });
+            });
+
+            // iOS/Safari safety net if transitionend is lost.
+            setTimeout(finishSpin, duration + 350);
+        }
+
+        /*
+          Fallback: tapping the prompt performs a natural automatic spin.
+          It deliberately looks like a prompt rather than a separate button.
+        */
+        function giveItAFlick() {
+            if (isSpinning || isDraggingSpinner) return;
+
+            spinOwner = currentPlayer;
+
+            const direction = Math.random() < 0.18 ? -1 : 1;
+            const fallbackVelocity =
+                direction * (1.05 + Math.random() * 0.65);
+
+            spinFromVelocity(fallbackVelocity);
+        }
+
+        function setupPhysicalSpinner() {
+            const rotor = document.getElementById('willy-rotor');
+
+            rotor.addEventListener('pointerdown', beginPhysicalFlick);
+            rotor.addEventListener('pointermove', movePhysicalFlick);
+            rotor.addEventListener('pointerup', endPhysicalFlick);
+            rotor.addEventListener('pointercancel', endPhysicalFlick);
+        }
+
+        setupPhysicalSpinner();
+
+        function showResult(result) {
+            const resultDisplay =
+                document.getElementById('result-display');
+
+            const labels = [
+                player1.name,
+                player2.name,
+                'Both',
+                'Bust'
+            ];
+
+            const colors = [
+                '#ff69b4',
+                '#4169e1',
+                '#9932cc',
+                '#dc143c'
+            ];
+
+            resultDisplay.textContent = labels[result];
+            resultDisplay.style.color = colors[result];
+            resultDisplay.classList.add('show');
+        }
+
+
+        // ------------------------------------------------------------
+        // RESULT / CARD FLOW
+        // ------------------------------------------------------------
+
+        function handleSpinResult(result) {
+            document.getElementById('result-display')
+                .classList.remove('show');
+
+            // Bust applies to the person who actually spun.
+            if (result === 3) {
+                handleBust();
+                return;
+            }
+
+            let deck;
+            let deckName;
+
+            if (result === 0) {
+                // Emma / Player 1 owns this card and gets the next turn.
+                deck = emmasDeckCurrent;
+                deckName = 'emma';
+                actionPlayer = player1;
+                nextPlayer = player1;
+            } else if (result === 1) {
+                // Jim / Player 2 owns this card and gets the next turn.
+                deck = jimsDeckCurrent;
+                deckName = 'jim';
+                actionPlayer = player2;
+                nextPlayer = player2;
+            } else {
+                // Both perform the card; the original spinner keeps the turn.
+                deck = bothDeckCurrent;
+                deckName = 'both';
+                actionPlayer = spinOwner;
+                nextPlayer = spinOwner;
+            }
+
+            if (deck.length === 0) {
+                if (result === 0) {
+                    emmasDeckCurrent = [...emmasDeck];
+                    deck = emmasDeckCurrent;
+                } else if (result === 1) {
+                    jimsDeckCurrent = [...jimsDeck];
+                    deck = jimsDeckCurrent;
+                } else {
+                    bothDeckCurrent = [...bothDeck];
+                    deck = bothDeckCurrent;
+                }
+
+                updateDeckInfo();
+            }
+
+            const cardIndex =
+                Math.floor(Math.random() * deck.length);
+
+            currentCard = deck[cardIndex];
+            currentDeck = deckName;
+
+            clearCardPromptMode();
+
+            document.getElementById('card-text').textContent =
+                currentCard;
+
+            document.getElementById('card-display').style.display =
+                'flex';
+
+            document.getElementById('action-buttons').innerHTML = `
+                <button class="btn btn-success"
+                    onclick="beginAction()">Begin</button>
+                <button class="btn btn-secondary"
+                    onclick="skipCard()">Skip</button>
+            `;
+        }
+
+
+        function skipCard() {
+            if (!currentCard || !currentDeck) return;
+
+            // No points for a skipped card.
+            // Remove it from the active deck for the rest of this game.
+            // It is not added to completedCards, so Bust cannot restore it.
+            if (currentDeck === 'emma') {
+                emmasDeckCurrent =
+                    emmasDeckCurrent.filter(c => c !== currentCard);
+            } else if (currentDeck === 'jim') {
+                jimsDeckCurrent =
+                    jimsDeckCurrent.filter(c => c !== currentCard);
+            } else if (currentDeck === 'both') {
+                bothDeckCurrent =
+                    bothDeckCurrent.filter(c => c !== currentCard);
+            }
+
+            currentCard = null;
+            currentDeck = null;
+
+            updateDeckInfo();
+            finishCardTurn();
+        }
+
+
+        // ------------------------------------------------------------
+        // TIMER
+        // ------------------------------------------------------------
+
+        function beginAction() {
+            clearInterval(timerInterval);
+
+            timeRemaining = 30;
+
+            document.getElementById('timer-display').style.display =
+                'block';
+
+            document.getElementById('timer-bar').style.display =
+                'block';
+
+            document.getElementById('timer-display').textContent =
+                timeRemaining;
+
+            document.getElementById('timer-progress').style.width =
+                '100%';
+
+            document.getElementById('action-buttons').innerHTML = '';
+
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+
+                document.getElementById('timer-display').textContent =
+                    timeRemaining;
+
+                document.getElementById('timer-progress').style.width =
+                    (timeRemaining / 30 * 100) + '%';
+
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+
+                    playSound('alarm');
+
+                    setTimeout(showCompletedFailed, 500);
+                }
+            }, 1000);
+        }
+
+        function showCompletedFailed() {
+            document.getElementById('timer-display').style.display =
+                'none';
+
+            document.getElementById('timer-bar').style.display =
+                'none';
+
+            document.getElementById('action-buttons').innerHTML = `
+                <button class="btn btn-success"
+                    onclick="cardCompleted()">Completed</button>
+                <button class="btn btn-danger"
+                    onclick="cardFailed()">Failed</button>
+            `;
+        }
+
+
+        // ------------------------------------------------------------
+        // CARD COMPLETION
+        // ------------------------------------------------------------
+
+        function cardCompleted() {
+            // The person who actually performed the action gets the point.
+            actionPlayer.unbanked++;
+
+            actionPlayer.completedCards.push({
+                card: currentCard,
+                deck: currentDeck
+            });
+
+            if (currentDeck === 'emma') {
+                emmasDeckCurrent =
+                    emmasDeckCurrent.filter(c => c !== currentCard);
+            } else if (currentDeck === 'jim') {
+                jimsDeckCurrent =
+                    jimsDeckCurrent.filter(c => c !== currentCard);
+            } else {
+                bothDeckCurrent =
+                    bothDeckCurrent.filter(c => c !== currentCard);
+            }
+
+            updateScores();
+            updateDeckInfo();
+
+            document.getElementById('action-buttons').innerHTML = `
+                <button class="btn btn-secondary"
+                    onclick="wankBank()">Wank Bank</button>
+                <button class="btn"
+                    onclick="gamble()">Gamble</button>
+            `;
+
+            document.getElementById('card-display').style.display =
+                'none';
+
+            currentCard = null;
+            currentDeck = null;
+
+            // The player who owns the action now becomes the active player.
+            currentPlayer = nextPlayer;
+            otherPlayer = currentPlayer === player1 ? player2 : player1;
+            updateTurnIndicator();
+        }
+
+        function cardFailed() {
+            currentCard = null;
+            currentDeck = null;
+            finishCardTurn();
+        }
+
+
+        function finishCardTurn() {
+            if (nextPlayer) {
+                currentPlayer = nextPlayer;
+                otherPlayer = currentPlayer === player1 ? player2 : player1;
+            }
+
+            actionPlayer = null;
+            nextPlayer = null;
+            spinOwner = null;
+
+            document.getElementById('timer-display').style.display = 'none';
+            document.getElementById('timer-bar').style.display = 'none';
+
+            updateTurnIndicator();
+            showSpinReady();
+        }
+
+
+        // ------------------------------------------------------------
+        // BANK / GAMBLE
+        // ------------------------------------------------------------
+
+        function wankBank() {
+            playSound('bank');
+
+            currentPlayer.banked += currentPlayer.unbanked;
+            currentPlayer.unbanked = 0;
+            currentPlayer.completedCards = [];
+
+            updateScores();
+
+            if (currentPlayer.banked >= 8) {
+                showWin();
+                return;
+            }
+
+            switchTurn();
+        }
+
+        function gamble() {
+            actionPlayer = null;
+            nextPlayer = null;
+            spinOwner = null;
+
+            showSpinReady();
+        }
+
+
+        // ------------------------------------------------------------
+        // BUST
+        // ------------------------------------------------------------
+
+        function handleBust() {
+            playSound('bust');
+
+            const bustedPlayer = spinOwner || currentPlayer;
+
+            bustedPlayer.completedCards.forEach(item => {
+                if (item.deck === 'emma') {
+                    emmasDeckCurrent.push(item.card);
+                } else if (item.deck === 'jim') {
+                    jimsDeckCurrent.push(item.card);
+                } else {
+                    bothDeckCurrent.push(item.card);
+                }
+            });
+
+            const lostPoints = bustedPlayer.unbanked;
+
+            bustedPlayer.unbanked = 0;
+            bustedPlayer.completedCards = [];
+
+            updateScores();
+            updateDeckInfo();
+
+            document.getElementById('bust-points-lost').textContent =
+                bustedPlayer.name +
+                ' lost ' +
+                lostPoints +
+                ' unbanked point(s)!';
+
+            // Bust ends the spinner's turn.
+            currentPlayer = bustedPlayer === player1 ? player2 : player1;
+            otherPlayer = bustedPlayer;
+
+            actionPlayer = null;
+            nextPlayer = null;
+            spinOwner = null;
+
+            document.getElementById('game-screen')
+                .classList.remove('active');
+
+            document.getElementById('bust-screen')
+                .classList.add('active');
+        }
+
+        function continueAfterBust() {
+            document.getElementById('bust-screen')
+                .classList.remove('active');
+
+            document.getElementById('game-screen')
+                .classList.add('active');
+
+            updateTurnIndicator();
+            showSpinReady();
+        }
+
+
+        // ------------------------------------------------------------
+        // TURN MANAGEMENT
+        // ------------------------------------------------------------
+
+        function switchTurn() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+
+            isSpinning = false;
+            isDraggingSpinner = false;
+            actionPlayer = null;
+            nextPlayer = null;
+            spinOwner = null;
+
+            const temp = currentPlayer;
+            currentPlayer = otherPlayer;
+            otherPlayer = temp;
+
+            updateTurnIndicator();
+            showSpinReady();
+        }
+
+
+        // ------------------------------------------------------------
+        // WIN / RESET
+        // ------------------------------------------------------------
+
+        function showWin() {
+            playSound('win');
+
+            document.getElementById('winner-name').textContent =
+                currentPlayer.name + ' wins!';
+
+            document.getElementById('game-screen')
+                .classList.remove('active');
+
+            document.getElementById('win-screen')
+                .classList.add('active');
+        }
+
+        function resetGame() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+
+            isSpinning = false;
+            isDraggingSpinner = false;
+            activePointerId = null;
+
+            document.getElementById('win-screen')
+                .classList.remove('active');
+
+            document.getElementById('splash-screen')
+                .classList.add('active');
+        }
+    </script>
+</body>
+</html>
