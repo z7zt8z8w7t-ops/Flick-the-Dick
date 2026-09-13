@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flick the Dick - The Wank Bank</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a0a1a 0%, #2d1b2d 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        
+        .screen {
+            display: none;
+            width: 100%;
+            max-width: 500px;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            animation: fadeIn 0.5s;
+        }
+        
+        .screen.active {
+            display: flex;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        h1 {
+            font-size: 3em;
+            text-align: center;
+            background: linear-gradient(45deg, #ff69b4, #ff1493);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .subtitle {
+            color: #ff69b4;
+            font-size: 1.3em;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .tap-hint {
+            color: #ff69b4;
+            font-size: 1.1em;
+            animation: pulse 2s infinite;
+            cursor: pointer;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .score-board {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            background: rgba(255, 105, 180, 0.1);
+            border-radius: 15px;
+            padding: 15px;
+            border: 2px solid #ff69b4;
+        }
+        
+        .player-score {
+            text-align: center;
+        }
+        
+        .player-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #ff69b4;
+        }
+        
+        .score-details {
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        
+        .banked {
+            color: #ffd700;
+            font-weight: bold;
+        }
+        
+        .unbanked {
+            color: #ff69b4;
+            font-weight: bold;
+        }
+        
+        .spinner-container {
+            position: relative;
+            width: 320px;
+            height: 320px;
+            margin: 20px 0;
+        }
+        
+        .spinner-wheel {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 4px solid #fff;
+            box-shadow: 0 0 20px rgba(255, 105, 180, 0.5);
+        }
+        
+        .wheel-section {
+            position: absolute;
+            width: 50%;
+            height: 50%;
+            transform-origin: 100% 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.3em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+        
+        .wheel-section:nth-child(1) {
+            background: linear-gradient(135deg, #ff69b4, #ff1493);
+            transform: rotate(0deg);
+            clip-path: polygon(0 0, 100% 0, 100% 100%);
+            color: white;
+        }
+        
+        .wheel-section:nth-child(2) {
+            background: linear-gradient(135deg, #4169e1, #1e90ff);
+            transform: rotate(90deg);
+            clip-path: polygon(0 0, 100% 0, 100% 100%);
+            color: white;
+        }
+        
+        .wheel-section:nth-child(3) {
+            background: linear-gradient(135deg, #9932cc, #ba55d3);
+            transform: rotate(180deg);
+            clip-path: polygon(0 0, 100% 0, 100% 100%);
+            color: white;
+        }
+        
+        .wheel-section:nth-child(4) {
+            background: linear-gradient(135deg, #dc143c, #ff4444);
+            transform: rotate(270deg);
+            clip-path: polygon(0 0, 100% 0, 100% 100%);
+            color: white;
+        }
+        
+        .section-text {
+            transform: rotate(45deg);
+            margin-top: -30px;
+            margin-left: 30px;
+        }
+        
+        .spinner-pointer {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3em;
+            z-index: 20;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+        }
+        
+        .willy-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 140px;
+            height: 50px;
+            margin-top: -25px;
+            margin-left: -70px;
+            z-index: 10;
+            transform-origin: center center;
+            transition: transform 3s cubic-bezier(0.2, 0.8, 0.3, 1);
+        }
+        
+        .willy-body {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #ffb6c1, #ff69b4);
+            border-radius: 25px 8px 8px 25px;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(255, 105, 180, 0.6);
+            border: 2px solid #ff1493;
+        }
+        
+        .willy-tip {
+            position: absolute;
+            right: -12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 28px;
+            height: 36px;
+            background: linear-gradient(135deg, #ffb6c1, #ff69b4);
+            border-radius: 50%;
+            border: 2px solid #ff1493;
+            box-shadow: 0 4px 15px rgba(255, 105, 180, 0.6);
+        }
+        
+        .center-dot {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            border-radius: 50%;
+            z-index: 15;
+            border: 3px solid #ff69b4;
+        }
+        
+        .result-display {
+            position: absolute;
+            bottom: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #ffd700;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+        
+        .result-display.show {
+            opacity: 1;
+        }
+        
+        .card-display {
+            background: rgba(255, 255, 255, 0.1);
+            border: 3px solid #ff69b4;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3em;
+            margin: 20px 0;
+            width: 100%;
+        }
+        
+        .timer-display {
+            font-size: 4em;
+            color: #ffd700;
+            text-align: center;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        
+        .timer-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .timer-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #ff69b4, #ffd700);
+            transition: width 1s linear;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #ff69b4, #ff1493);
+            border: none;
+            color: white;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(255, 105, 180, 0.5);
+        }
+        
+        .btn:active {
+            transform: scale(0.95);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(45deg, #4169e1, #6495ed);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(45deg, #dc143c, #ff4444);
+        }
+        
+        .btn-success {
+            background: linear-gradient(45deg, #32cd32, #228b22);
+        }
+        
+        .btn-large {
+            padding: 20px 60px;
+            font-size: 1.5em;
+        }
+        
+        .button-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+        }
+        
+        input {
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #ff69b4;
+            background: rgba(255, 105, 180, 0.1);
+            color: white;
+            font-size: 1.1em;
+        }
+        
+        input::placeholder {
+            color: #ff69b4;
+            opacity: 0.7;
+        }
+        
+        .turn-indicator {
+            font-size: 1.5em;
+            color: #ffd700;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .bust-message {
+            font-size: 3em;
+            color: #dc143c;
+            text-align: center;
+            animation: shake 0.5s;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        
+        .win-message {
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #ffd700, #ff69b4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+        }
+        
+        .prize-text {
+            font-size: 1.2em;
+            color: #ff69b4;
+            text-align: center;
+            margin: 20px;
+            padding: 20px;
+            border: 2px solid #ff69b4;
+            border-radius: 15px;
+            background: rgba(255, 105, 180, 0.1);
+        }
+        
+        .deck-info {
+            font-size: 0.9em;
+            color: #ff69b4;
+            text-align: center;
+            margin-top: 10px;
+        }
+        
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 60px;
+            font-size: 0.9em;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Screen 0: Splash -->
+    <div id="splash-screen" class="screen active" onclick="showStart()">
+        <h1>Flick the Dick</h1>
+        <p class="subtitle">The Wank Bank</p>
+        <p class="subtitle">Flick it to win it</p>
+        <br><br>
+        <p class="tap-hint">Tap anywhere to start</p>
+    </div>
+
+    <!-- Screen 1: Start -->
+    <div id="start-screen" class="screen">
+        <h1>Flick the Dick</h1>
+        <p class="subtitle">The Wank Bank</p>
+        <div class="input-group">
+            <input type="text" id="player1-name" placeholder="Player 1 name" value="Emma">
+            <input type="text" id="player2-name" placeholder="Player 2 name" value="Jim">
+        </div>
+        <p style="text-align: center; margin: 20px 0; color: #ff69b4; font-size: 1.2em;">
+            First to 8 banked points wins!
+        </p>
+        <button class="btn btn-large" onclick="startGame()">Start Game</button>
+    </div>
+
+    <!-- Screen 2: Game -->
+    <div id="game-screen" class="screen">
+        <div class="score-board">
+            <div class="player-score">
+                <div class="player-name" id="p1-display">Emma</div>
+                <div class="score-details">
+                    <span class="banked" id="p1-banked">0 banked</span><br>
+                    <span class="unbanked" id="p1-unbanked">0 unbanked</span>
+                </div>
+            </div>
+            <div class="player-score">
+                <div class="player-name" id="p2-display">Jim</div>
+                <div class="score-details">
+                    <span class="banked" id="p2-banked">0 banked</span><br>
+                    <span class="unbanked" id="p2-unbanked">0 unbanked</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="turn-indicator" id="turn-indicator">Emma's Turn</div>
+        
+        <div class="spinner-container" id="spinner-container" style="display: none;">
+            <div class="spinner-pointer">👇</div>
+            <div class="spinner-wheel">
+                <div class="wheel-section"><span class="section-text">Emma</span></div>
+                <div class="wheel-section"><span class="section-text">Jim</span></div>
+                <div class="wheel-section"><span class="section-text">Both</span></div>
+                <div class="wheel-section"><span class="section-text">Bust</span></div>
+            </div>
+            <div class="willy-container" id="willy">
+                <div class="willy-body">
+                    <div class="willy-tip"></div>
+                </div>
+            </div>
+            <div class="center-dot"></div>
+            <div class="result-display" id="result-display"></div>
+            
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ff69b4;"></div>
+                    <span>Emma</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #4169e1;"></div>
+                    <span>Jim</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #9932cc;"></div>
+                    <span>Both</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #dc143c;"></div>
+                    <span>Bust</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card-display" id="card-display" style="display: none;">
+            <p id="card-text">Draw a card...</p>
+        </div>
+        
+        <div class="timer-display" id="timer-display" style="display: none;">
+            30
+        </div>
+        
+        <div class="timer-bar" id="timer-bar" style="display: none;">
+            <div class="timer-progress" id="timer-progress"></div>
+        </div>
+        
+        <div class="button-row" id="action-buttons">
+            <button class="btn btn-large" id="flick-btn" onclick="giveItAFlick()">Give it a Flick</button>
+        </div>
+        
+        <div class="deck-info" id="deck-info"></div>
+    </div>
+
+    <!-- Screen 3: Bust -->
+    <div id="bust-screen" class="screen">
+        <div class="bust-message">💥 BUST! 💥</div>
+        <p id="bust-points-lost" style="font-size: 1.5em; text-align: center; margin: 20px 0;"></p>
+        <p style="text-align: center; color: #ff69b4; font-size: 1.2em;">
+            All completed cards returned to deck!
+        </p>
+        <br>
+        <button class="btn btn-large" onclick="continueAfterBust()">Continue</button>
+    </div>
+
+    <!-- Screen 4: Win -->
+    <div id="win-screen" class="screen">
+        <div class="win-message">🎉 Winner! 🎉</div>
+        <p id="winner-name" style="font-size: 2em; text-align: center; margin: 20px 0;"></p>
+        <div class="prize-text">
+            The loser must obey every command the winner makes for 24 hours<br>
+            <strong>Starting from when the winner says</strong>
+        </div>
+        <p style="text-align: center; color: #ff69b4; font-size: 1.3em;">
+            Claim your prize! 😈
+        </p>
+        <br>
+        <button class="btn btn-large" onclick="resetGame()">Play Again</button>
+    </div>
+
+    <script>
+        // Audio Context for sound effects
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(type) {
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            switch(type) {
+                case 'spin':
+                    oscillator.frequency.value = 200;
+                    oscillator.type = 'sine';
+                    gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                    oscillator.start(audioCtx.currentTime);
+                    oscillator.stop(audioCtx.currentTime + 0.1);
+                    break;
+                case 'alarm':
+                    oscillator.frequency.value = 800;
+                    oscillator.type = 'square';
+                    gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                    oscillator.start(audioCtx.currentTime);
+                    oscillator.stop(audioCtx.currentTime + 0.5);
+                    break;
+                case 'bank':
+                    oscillator.frequency.value = 600;
+                    oscillator.type = 'sine';
+                    gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                    oscillator.start(audioCtx.currentTime);
+                    oscillator.stop(audioCtx.currentTime + 0.3);
+                    break;
+                case 'bust':
+                    oscillator.frequency.value = 150;
+                    oscillator.type = 'sawtooth';
+                    gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.8);
+                    oscillator.start(audioCtx.currentTime);
+                    oscillator.stop(audioCtx.currentTime + 0.8);
+                    break;
+                case 'win':
+                    oscillator.frequency.value = 523;
+                    oscillator.type = 'sine';
+                    gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                    oscillator.frequency.setValueAtTime(523, audioCtx.currentTime);
+                    oscillator.frequency.setValueAtTime(659, audioCtx.currentTime + 0.1);
+                    oscillator.frequency.setValueAtTime(784, audioCtx.currentTime + 0.2);
+                    oscillator.frequency.setValueAtTime(1047, audioCtx.currentTime + 0.3);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1);
+                    oscillator.start(audioCtx.currentTime);
+                    oscillator.stop(audioCtx.currentTime + 1);
+                    break;
+            }
+        }
+
+        // Game State
+        let player1 = { name: 'Emma', banked: 0, unbanked: 0, completedCards: [] };
+        let player2 = { name: 'Jim', banked: 0, unbanked: 0, completedCards: [] };
+        let currentPlayer = null;
+        let otherPlayer = null;
+        let currentCard = null;
+        let currentDeck = null;
+        let isSpinning = false;
+        let timerInterval = null;
+        let timeRemaining = 30;
+
+        // Decks
+        const emmasDeck = [
+            "Give him a blowjob",
+            "Give him a handjob",
+            "Give him a blowjob while playing with his balls and teasing his ass",
+            "Play with his nipples",
+            "Tease his ass",
+            "Play with his balls",
+            "Kiss his whole body",
+            "Talk dirty to him whilst teasing the tip of his cock",
+            "Edge him",
+            "Deep throat him",
+            "Sit on his face and grind"
+        ];
+
+        const jimsDeck = [
+            "Go down on her",
+            "Finger her",
+            "Rub her clit",
+            "Play with her breasts",
+            "Kiss her neck",
+            "Spank her",
+            "Tease her ass",
+            "Lick her from behind",
+            "Kiss her whole body",
+            "Lick her clit, rub her g-spot, and finger her ass simultaneously",
+            "Lick her while she sits on your face"
+        ];
+
+        const bothDeck = [
+            "69 each other",
+            "Take turns giving oral",
+            "Masturbate each other",
+            "Have sex missionary style",
+            "Have sex with her on top",
+            "Have sex from behind",
+            "Have spooning sex",
+            "Have standing sex",
+            "Edge each other",
+            "Make each other cum at the same time",
+            "Masturbate at the same time while watching each other"
+        ];
+
+        let emmasDeckCurrent = [...emmasDeck];
+        let jimsDeckCurrent = [...jimsDeck];
+        let bothDeckCurrent = [...bothDeck];
+
+        function showStart() {
+            document.getElementById('splash-screen').classList.remove('active');
+            document.getElementById('start-screen').classList.add('active');
+        }
+
+        function startGame() {
+            player1.name = document.getElementById('player1-name').value || 'Emma';
+            player2.name = document.getElementById('player2-name').value || 'Jim';
+            
+            document.getElementById('p1-display').textContent = player1.name;
+            document.getElementById('p2-display').textContent = player2.name;
+            
+            emmasDeckCurrent = [...emmasDeck];
+            jimsDeckCurrent = [...jimsDeck];
+            bothDeckCurrent = [...bothDeck];
+            
+            player1.banked = 0; player1.unbanked = 0; player1.completedCards = [];
+            player2.banked = 0; player2.unbanked = 0; player2.completedCards = [];
+            
+            updateScores();
+            
+            currentPlayer = player1;
+            otherPlayer = player2;
+            
+            document.getElementById('start-screen').classList.remove('active');
+            document.getElementById('game-screen').classList.add('active');
+            
+            updateTurnIndicator();
+            updateDeckInfo();
+        }
+
+        function updateScores() {
+            document.getElementById('p1-banked').textContent = player1.banked + ' banked';
+            document.getElementById('p1-unbanked').textContent = player1.unbanked + ' unbanked';
+            document.getElementById('p2-banked').textContent = player2.banked + ' banked';
+            document.getElementById('p2-unbanked').textContent = player2.unbanked + ' unbanked';
+        }
+
+        function updateTurnIndicator() {
+            document.getElementById('turn-indicator').textContent = currentPlayer.name + "'s Turn";
+        }
+
+        function updateDeckInfo() {
+            const info = `${player1.name}'s deck: ${emmasDeckCurrent.length} | ${player2.name}'s deck: ${jimsDeckCurrent.length} | Both: ${bothDeckCurrent.length}`;
+            document.getElementById('deck-info').textContent = info;
+        }
+
+        function giveItAFlick() {
+            if (isSpinning) return;
+            isSpinning = true;
+            
+            playSound('spin');
+            
+            document.getElementById('spinner-container').style.display = 'block';
+            document.getElementById('card-display').style.display = 'none';
+            document.getElementById('timer-display').style.display = 'none';
+            document.getElementById('timer-bar').style.display = 'none';
+            document.getElementById('result-display').classList.remove('show');
+            
+            const willy = document.getElementById('willy');
+            const rotations = 5 + Math.random() * 5;
+            const finalAngle = Math.random() * 360;
+            const totalRotation = rotations * 360 + finalAngle;
+            
+            willy.style.transform = `rotate(${totalRotation}deg)`;
+            
+            setTimeout(() => {
+                isSpinning = false;
+                const normalizedAngle = finalAngle % 360;
+                let result;
+                if (normalizedAngle >= 0 && normalizedAngle < 90) result = 0; // Emma (top)
+                else if (normalizedAngle >= 90 && normalizedAngle < 180) result = 1; // Jim (right)
+                else if (normalizedAngle >= 180 && normalizedAngle < 270) result = 2; // Both (bottom)
+                else result = 3; // Bust (left)
+                
+                showResult(result);
+                setTimeout(() => handleSpinResult(result), 1000);
+            }, 3000);
+        }
+
+        function showResult(result) {
+            const resultDisplay = document.getElementById('result-display');
+            const labels = ['Emma', 'Jim', 'Both', 'Bust'];
+            const colors = ['#ff69b4', '#4169e1', '#9932cc', '#dc143c'];
+            resultDisplay.textContent = labels[result];
+            resultDisplay.style.color = colors[result];
+            resultDisplay.classList.add('show');
+        }
+
+        function handleSpinResult(result) {
+            document.getElementById('result-display').classList.remove('show');
+            
+            if (result === 3) {
+                handleBust();
+                return;
+            }
+            
+            let deck, deckName;
+            if (result === 0) {
+                deck = emmasDeckCurrent;
+                deckName = 'emma';
+            } else if (result === 1) {
+                deck = jimsDeckCurrent;
+                deckName = 'jim';
+            } else {
+                deck = bothDeckCurrent;
+                deckName = 'both';
+            }
+            
+            if (deck.length === 0) {
+                if (result === 0) emmasDeckCurrent = [...emmasDeck];
+                else if (result === 1) jimsDeckCurrent = [...jimsDeck];
+                else bothDeckCurrent = [...bothDeck];
+                updateDeckInfo();
+                handleSpinResult(result);
+                return;
+            }
+            
+            const cardIndex = Math.floor(Math.random() * deck.length);
+            currentCard = deck[cardIndex];
+            currentDeck = deckName;
+            
+            document.getElementById('card-text').textContent = currentCard;
+            document.getElementById('card-display').style.display = 'flex';
+            
+            const btnContainer = document.getElementById('action-buttons');
+            btnContainer.innerHTML = `<button class="btn btn-large btn-success" onclick="beginAction()">Begin</button>`;
+        }
+
+        function beginAction() {
+            timeRemaining = 30;
+            document.getElementById('timer-display').style.display = 'block';
+            document.getElementById('timer-bar').style.display = 'block';
+            document.getElementById('timer-display').textContent = timeRemaining;
+            document.getElementById('timer-progress').style.width = '100%';
+            
+            document.getElementById('action-buttons').innerHTML = '';
+            
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                document.getElementById('timer-display').textContent = timeRemaining;
+                document.getElementById('timer-progress').style.width = (timeRemaining / 30 * 100) + '%';
+                
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    playSound('alarm');
+                    setTimeout(() => {
+                        showCompletedFailed();
+                    }, 500);
+                }
+            }, 1000);
+        }
+
+        function showCompletedFailed() {
+            document.getElementById('timer-display').style.display = 'none';
+            document.getElementById('timer-bar').style.display = 'none';
+            
+            const btnContainer = document.getElementById('action-buttons');
+            btnContainer.innerHTML = `
+                <button class="btn btn-success" onclick="cardCompleted()">Completed</button>
+                <button class="btn btn-danger" onclick="cardFailed()">Failed</button>
+            `;
+        }
+
+        function cardCompleted() {
+            currentPlayer.unbanked++;
+            currentPlayer.completedCards.push({card: currentCard, deck: currentDeck});
+            
+            if (currentDeck === 'emma') {
+                emmasDeckCurrent = emmasDeckCurrent.filter(c => c !== currentCard);
+            } else if (currentDeck === 'jim') {
+                jimsDeckCurrent = jimsDeckCurrent.filter(c => c !== currentCard);
+            } else {
+                bothDeckCurrent = bothDeckCurrent.filter(c => c !== currentCard);
+            }
+            
+            updateScores();
+            updateDeckInfo();
+            
+            const btnContainer = document.getElementById('action-buttons');
+            btnContainer.innerHTML = `
+                <button class="btn btn-secondary" onclick="wankBank()">Wank Bank</button>
+                <button class="btn" onclick="gamble()">Gamble</button>
+            `;
+            
+            document.getElementById('card-display').style.display = 'none';
+        }
+
+        function cardFailed() {
+            switchTurn();
+        }
+
+        function wankBank() {
+            playSound('bank');
+            currentPlayer.banked += currentPlayer.unbanked;
+            currentPlayer.unbanked = 0;
+            currentPlayer.completedCards = [];
+            
+            updateScores();
+            
+            if (currentPlayer.banked >= 8) {
+                showWin();
+                return;
+            }
+            
+            switchTurn();
+        }
+
+        function gamble() {
+            document.getElementById('action-buttons').innerHTML = `
+                <button class="btn btn-large" onclick="giveItAFlick()">Give it a Flick</button>
+            `;
+            document.getElementById('card-display').style.display = 'none';
+            giveItAFlick();
+        }
+
+        function handleBust() {
+            playSound('bust');
+            
+            currentPlayer.completedCards.forEach(item => {
+                if (item.deck === 'emma') emmasDeckCurrent.push(item.card);
+                else if (item.deck === 'jim') jimsDeckCurrent.push(item.card);
+                else bothDeckCurrent.push(item.card);
+            });
+            
+            const lostPoints = currentPlayer.unbanked;
+            currentPlayer.unbanked = 0;
+            currentPlayer.completedCards = [];
+            
+            updateScores();
+            updateDeckInfo();
+            
+            document.getElementById('bust-points-lost').textContent = 
+                currentPlayer.name + ' lost ' + lostPoints + ' unbanked point(s)!';
+            
+            document.getElementById('game-screen').classList.remove('active');
+            document.getElementById('bust-screen').classList.add('active');
+        }
+
+        function continueAfterBust() {
+            document.getElementById('bust-screen').classList.remove('active');
+            document.getElementById('game-screen').classList.add('active');
+            switchTurn();
+        }
+
+        function switchTurn() {
+            clearInterval(timerInterval);
+            document.getElementById('action-buttons').innerHTML = `
+                <button class="btn btn-large" onclick="giveItAFlick()">Give it a Flick</button>
+            `;
+            document.getElementById('card-display').style.display = 'none';
+            document.getElementById('spinner-container').style.display = 'none';
+            document.getElementById('timer-display').style.display = 'none';
+            document.getElementById('timer-bar').style.display = 'none';
+            document.getElementById('result-display').classList.remove('show');
+            
+            const temp = currentPlayer;
+            currentPlayer = otherPlayer;
+            otherPlayer = temp;
+            
+            updateTurnIndicator();
+        }
+
+        function showWin() {
+            playSound('win');
+            document.getElementById('winner-name').textContent = currentPlayer.name + ' wins!';
+            document.getElementById('game-screen').classList.remove('active');
+            document.getElementById('win-screen').classList.add('active');
+        }
+
+        function resetGame() {
+            document.getElementById('win-screen').classList.remove('active');
+            document.getElementById('splash-screen').classList.add('active');
+        }
+    </script>
+</body>
+</html>
