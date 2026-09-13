@@ -1,0 +1,3037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="theme-color" content="#1a0a1a">
+    <title>Flick the Dick - The Wank Bank</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a0a1a 0%, #2d1b2d 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 12px;
+            overflow-x: hidden;
+        }
+
+        .screen {
+            display: none;
+            width: 100%;
+            max-width: 500px;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            animation: fadeIn 0.5s;
+        }
+
+        .screen.active { display: flex; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        h1 {
+            font-size: 2.45em;
+            text-align: center;
+            background: linear-gradient(45deg, #ff69b4, #ff1493);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 3px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            color: #ff69b4;
+            font-size: 1.05em;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .tap-hint {
+            color: #ff69b4;
+            font-size: 1.1em;
+            animation: pulseText 2s infinite;
+            cursor: pointer;
+        }
+
+        @keyframes pulseText {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+
+        /* Polished cartoon-game splash */
+        #splash-screen {
+            min-height: calc(100vh - 16px);
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            padding: 24px 14px;
+        }
+
+        #splash-screen::before {
+            content: "";
+            position: absolute;
+            width: 330px;
+            height: 330px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,105,180,0.20) 0%, rgba(255,20,147,0.08) 48%, transparent 72%);
+            filter: blur(2px);
+            pointer-events: none;
+        }
+
+        .splash-logo {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+        }
+
+        .splash-logo h1 {
+            font-size: clamp(2.75em, 12vw, 4.35em);
+            line-height: 0.95;
+            letter-spacing: -2px;
+            margin: 0;
+        }
+
+        .edition {
+            margin-top: 8px;
+            color: #ffd1e7;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-weight: 800;
+            font-size: 0.86em;
+        }
+
+        .splash-mascot {
+            position: relative;
+            z-index: 2;
+            width: 230px;
+            height: 128px;
+            margin: 22px auto 8px;
+            animation: mascotWobble 2.8s ease-in-out infinite;
+            transform-origin: 50% 72%;
+            filter: drop-shadow(0 13px 18px rgba(0,0,0,0.38));
+        }
+
+        @keyframes mascotWobble {
+            0%, 100% { transform: rotate(-4deg) translateY(0); }
+            25% { transform: rotate(4deg) translateY(-5px); }
+            50% { transform: rotate(-2deg) translateY(1px); }
+            75% { transform: rotate(3deg) translateY(-3px); }
+        }
+
+        .mascot-body {
+            position: absolute;
+            left: 54px;
+            top: 40px;
+            width: 132px;
+            height: 52px;
+            border-radius: 34px 23px 25px 34px;
+            background: linear-gradient(180deg,#ffd8df 0%,#ffb2c3 34%,#ff8daa 68%,#ef7295 100%);
+            border: 3px solid #aa2f5d;
+            box-shadow: inset 0 8px 9px rgba(255,255,255,.30), inset 0 -7px 8px rgba(100,0,35,.12);
+            transform: rotate(-5deg);
+        }
+
+        .mascot-body::after {
+            content: "";
+            position: absolute;
+            right: -31px;
+            top: -7px;
+            width: 55px;
+            height: 62px;
+            border-radius: 56% 62% 60% 52%;
+            background: linear-gradient(180deg,#ffb8ca 0%,#ff91ae 58%,#ed6d94 100%);
+            border: 3px solid #aa2f5d;
+            box-shadow: inset 6px 4px 7px rgba(255,255,255,.24);
+        }
+
+        .mascot-ball {
+            position: absolute;
+            top: 73px;
+            width: 54px;
+            height: 49px;
+            border-radius: 50%;
+            background: linear-gradient(180deg,#ffc4d2,#ef7f9e);
+            border: 3px solid #aa2f5d;
+        }
+
+        .mascot-ball.left { left: 39px; transform: rotate(9deg); }
+        .mascot-ball.right { left: 78px; transform: rotate(-9deg); }
+
+        .splash-copy {
+            position: relative;
+            z-index: 2;
+            margin-top: 9px;
+            text-align: center;
+            color: #ffd7ea;
+            font-size: 1.08em;
+            font-weight: 650;
+        }
+
+        .splash-enter {
+            position: relative;
+            z-index: 2;
+            margin-top: 15px;
+            padding: 14px 22px;
+            min-width: 245px;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,.22);
+            background: linear-gradient(135deg,#ff1493,#c71585);
+            box-shadow: 0 10px 24px rgba(199,21,133,.34), inset 0 1px 0 rgba(255,255,255,.25);
+            color: white;
+            font-weight: 900;
+            letter-spacing: 1.1px;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .splash-tagline {
+            position: relative;
+            z-index: 2;
+            margin-top: 15px;
+            color: #d8a9c4;
+            font-size: 0.86em;
+            text-align: center;
+        }
+
+        /* Aim of the Game screen */
+        #start-screen {
+            min-height: calc(100vh - 16px);
+            justify-content: center;
+            padding: 22px 14px;
+        }
+
+        .aim-card {
+            width: 100%;
+            margin: 16px 0 18px;
+            padding: 24px 18px;
+            border-radius: 22px;
+            text-align: center;
+            background: linear-gradient(145deg, rgba(255,255,255,.09), rgba(255,105,180,.055));
+            border: 1px solid rgba(255,105,180,.24);
+            box-shadow: 0 14px 30px rgba(0,0,0,.22);
+        }
+
+        .aim-card h2 {
+            color: #ff69b4;
+            font-size: 1.5em;
+            margin-bottom: 16px;
+        }
+
+        .aim-rhyme {
+            font-size: 1.18em;
+            line-height: 1.7;
+            font-weight: 650;
+            color: #fff4fa;
+        }
+
+
+
+        /* Timer replaces the spinner in-place */
+        .spinner-container.timer-mode .spinner-wheel,
+        .spinner-container.timer-mode .willy-rotor,
+        .spinner-container.timer-mode .center-dot,
+        .spinner-container.timer-mode .result-display {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .spinner-container {
+            position: relative;
+        }
+
+        #timer-display {
+            display: none;
+        }
+
+        .spinner-container.timer-mode #timer-display {
+            display: flex !important;
+            position: absolute;
+            inset: 50% auto auto 50%;
+            transform: translate(-50%, -50%) scale(1);
+            width: 72%;
+            aspect-ratio: 1 / 1;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            margin: 0;
+            z-index: 20;
+            font-size: clamp(4.6rem, 24vw, 8rem);
+            line-height: 1;
+            font-weight: 950;
+            letter-spacing: -0.06em;
+            color: #fff;
+            background:
+                radial-gradient(circle at 35% 28%, rgba(255,255,255,.18), transparent 28%),
+                linear-gradient(145deg, rgba(255,20,147,.34), rgba(70,8,52,.86));
+            border: 2px solid rgba(255,105,180,.38);
+            box-shadow:
+                0 14px 30px rgba(0,0,0,.30),
+                inset 0 0 28px rgba(255,105,180,.11);
+            text-shadow: 0 5px 18px rgba(0,0,0,.34);
+        }
+
+        .spinner-container.timer-mode #timer-display.countdown-pulse {
+            animation: countdownPulseInSpinner .58s cubic-bezier(.2,.9,.25,1);
+        }
+
+        @keyframes countdownPulseInSpinner {
+            0%   { transform: translate(-50%, -50%) scale(1); }
+            35%  { transform: translate(-50%, -50%) scale(1.18); }
+            65%  { transform: translate(-50%, -50%) scale(.96); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .spinner-container.timer-mode #timer-display.final-second {
+            text-shadow:
+                0 0 18px rgba(255,255,255,.45),
+                0 5px 18px rgba(0,0,0,.34);
+        }
+
+        .spinner-container.timer-mode + #timer-bar,
+        #timer-bar {
+            width: min(88%, 430px);
+            margin: 10px auto 14px;
+        }
+
+
+
+
+        /* =========================
+           FINAL VISUAL POLISH PASS
+           Presentation only – gameplay logic unchanged
+           ========================= */
+
+        :root {
+            --bg-deep: #241124;
+            --bg-panel: rgba(255,255,255,.065);
+            --bg-panel-strong: rgba(255,255,255,.095);
+            --cream: #fff7ef;
+            --gold: #f4c95d;
+            --pink: #f27aaa;
+            --pink-deep: #c74f82;
+            --red: #e95b67;
+            --green: #74d7a1;
+            --shadow-lg: 0 16px 40px rgba(0,0,0,.30);
+            --shadow-md: 0 8px 24px rgba(0,0,0,.22);
+        }
+
+        body {
+            background:
+                radial-gradient(circle at 50% -10%, rgba(242,122,170,.16), transparent 34%),
+                linear-gradient(180deg, #321530 0%, var(--bg-deep) 100%);
+        }
+
+        #game-screen {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        #game-screen .game-content {
+            max-width: 430px;
+            margin: 0 auto;
+        }
+
+        /* Top score zone */
+        #game-screen .score-board {
+            background: linear-gradient(180deg, var(--bg-panel-strong), var(--bg-panel));
+            border: 1px solid rgba(255,255,255,.11);
+            border-radius: 20px;
+            padding: 10px 12px;
+            box-shadow: var(--shadow-md);
+            backdrop-filter: blur(7px);
+            -webkit-backdrop-filter: blur(7px);
+        }
+
+        #game-screen .player-score {
+            border-radius: 15px;
+            padding: 7px 8px;
+            transition: transform .22s ease, box-shadow .22s ease, background .22s ease;
+        }
+
+        #game-screen .player-score.active,
+        #game-screen .player-score.current {
+            transform: translateY(-1px) scale(1.015);
+            background: rgba(255,255,255,.055);
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,.08);
+        }
+
+        /* Make the existing inch meters feel like game components */
+        #game-screen [class*="meter"],
+        #game-screen [class*="willy"] {
+            transition: transform .22s ease, filter .22s ease, opacity .22s ease;
+        }
+
+        .meter-gain,
+        .score-gain,
+        .gain-pop {
+            animation: polishedScorePop .42s cubic-bezier(.2,.9,.2,1);
+        }
+
+        @keyframes polishedScorePop {
+            0% { transform: scale(1); }
+            42% { transform: scale(1.08); filter: brightness(1.15); }
+            100% { transform: scale(1); filter: brightness(1); }
+        }
+
+        /* Spinner presentation */
+        .spinner-container {
+            filter: drop-shadow(0 12px 20px rgba(0,0,0,.22));
+        }
+
+        .spinner-wheel {
+            transition:
+                filter .22s ease,
+                opacity .22s ease;
+        }
+
+        .spinner-container:not(.timer-mode):active .spinner-wheel {
+            filter: brightness(1.04);
+        }
+
+        .willy-rotor {
+            filter:
+                drop-shadow(0 5px 6px rgba(0,0,0,.28))
+                saturate(1.05);
+        }
+
+        .center-dot {
+            box-shadow:
+                0 0 0 3px rgba(255,255,255,.22),
+                0 5px 14px rgba(0,0,0,.30) !important;
+        }
+
+        /* Result pop */
+        .result-display {
+            text-shadow: 0 3px 12px rgba(0,0,0,.28);
+            transition: transform .18s ease, opacity .18s ease;
+        }
+
+        /* Action card: proper game-card treatment */
+        #card-display {
+            background:
+                linear-gradient(180deg, rgba(255,255,255,.985), rgba(255,247,239,.965));
+            color: #3d2037;
+            border-radius: 22px;
+            border: 2px solid rgba(242,122,170,.38);
+            box-shadow: var(--shadow-lg);
+            padding: 18px 16px;
+            position: relative;
+            overflow: hidden;
+            transform-origin: 50% 90%;
+        }
+
+        #card-display::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background:
+                radial-gradient(circle at 15% 10%, rgba(242,122,170,.12), transparent 25%),
+                radial-gradient(circle at 90% 88%, rgba(244,201,93,.10), transparent 28%);
+        }
+
+        #card-display:not(.action-resolved) {
+            animation: polishedCardDeal .34s cubic-bezier(.2,.85,.2,1);
+        }
+
+        @keyframes polishedCardDeal {
+            from {
+                opacity: 0;
+                transform: translateY(10px) scale(.965) rotate(-.6deg);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1) rotate(0);
+            }
+        }
+
+        #card-display.action-resolved {
+            visibility: hidden;
+            opacity: 0;
+            transform: scale(.97);
+        }
+
+        /* Permanent two-button control zone */
+        #action-buttons {
+            margin-top: 10px;
+            margin-bottom: 6px;
+        }
+
+        #action-buttons .btn {
+            position: relative;
+            overflow: hidden;
+            letter-spacing: .015em;
+            box-shadow:
+                0 8px 18px rgba(0,0,0,.23),
+                inset 0 1px 0 rgba(255,255,255,.18);
+            border: 1px solid rgba(255,255,255,.13);
+            transform: translateZ(0);
+            transition:
+                transform .10s ease,
+                filter .16s ease,
+                box-shadow .16s ease;
+        }
+
+        #action-buttons .btn::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: linear-gradient(180deg, rgba(255,255,255,.12), transparent 42%);
+        }
+
+        #action-buttons .btn:active {
+            transform: translateY(2px) scale(.985);
+            box-shadow:
+                0 4px 10px rgba(0,0,0,.20),
+                inset 0 1px 0 rgba(255,255,255,.12);
+        }
+
+        /* Completed / positive */
+        #action-buttons .btn-success {
+            background: linear-gradient(180deg, #85e4ad, #59c98a);
+            color: #173728;
+        }
+
+        /* Failed / danger */
+        #action-buttons .btn-danger {
+            background: linear-gradient(180deg, #f17982, #da4e5b);
+            color: #fff;
+        }
+
+        /* Secondary / Wank Bank safe option */
+        #action-buttons .btn-secondary {
+            background: linear-gradient(180deg, #f7d97a, #eebf47);
+            color: #4b3610;
+        }
+
+        /* Gamble and standard primary */
+        #action-buttons .btn:not(.btn-success):not(.btn-danger):not(.btn-secondary) {
+            background: linear-gradient(180deg, #f28ab4, #dc6599);
+            color: #fff;
+        }
+
+        /* Give button state changes a clean entrance */
+        #action-buttons:not(:empty) .btn {
+            animation: polishedButtonIn .20s cubic-bezier(.2,.9,.25,1);
+        }
+
+        @keyframes polishedButtonIn {
+            from { opacity: 0; transform: translateY(5px) scale(.98); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* Refined cartoon timer: smaller, cleaner, less dominant */
+        .spinner-container.timer-mode #timer-display {
+            width: 53%;
+            max-width: 168px;
+            aspect-ratio: .82 / 1;
+            border-radius: 49% 49% 45% 45% / 53% 53% 47% 47%;
+            border: 3px solid rgba(128,38,76,.52);
+            background:
+                radial-gradient(ellipse at 50% 49%, rgba(255,246,249,.96) 0 16%, transparent 17%),
+                radial-gradient(ellipse at 42% 50%, rgba(252,183,204,.98) 0 26%, transparent 27%),
+                radial-gradient(ellipse at 58% 50%, rgba(252,183,204,.98) 0 26%, transparent 27%),
+                linear-gradient(180deg, #f9bad0 0%, #eb8caf 52%, #db6d9a 100%);
+            box-shadow:
+                0 14px 28px rgba(0,0,0,.27),
+                inset 0 0 0 5px rgba(255,255,255,.10),
+                inset 0 10px 20px rgba(255,255,255,.08);
+            color: #5f1534;
+            font-weight: 950;
+            text-shadow:
+                0 2px 0 rgba(255,255,255,.42),
+                0 5px 15px rgba(96,17,51,.16);
+        }
+
+        .spinner-container.timer-mode #timer-display::before,
+        .spinner-container.timer-mode #timer-display::after {
+            top: 15%;
+            bottom: 15%;
+            width: 24%;
+            border-radius: 50% 42% 42% 50%;
+            background:
+                linear-gradient(180deg, #f8b8ce 0%, #ec91b2 47%, #d76a98 100%);
+            border: 2px solid rgba(134,40,78,.42);
+            box-shadow:
+                inset 4px 0 6px rgba(255,255,255,.15),
+                0 3px 7px rgba(75,10,37,.09);
+        }
+
+        .spinner-container.timer-mode #timer-display::before {
+            left: -8%;
+            transform: rotate(6deg);
+        }
+
+        .spinner-container.timer-mode #timer-display::after {
+            right: -8%;
+            transform: scaleX(-1) rotate(6deg);
+        }
+
+        .spinner-container.timer-mode #timer-display.final-second {
+            filter: brightness(1.07) saturate(1.08);
+        }
+
+        /* Small screens first */
+        @media (max-width: 390px), (max-height: 760px) {
+            #game-screen .score-board {
+                padding: 7px 9px;
+                border-radius: 17px;
+            }
+
+            .spinner-container {
+                transform: scale(.93);
+                transform-origin: 50% 50%;
+                margin-top: -3px;
+                margin-bottom: -3px;
+            }
+
+            #card-display {
+                padding: 14px 13px;
+                border-radius: 18px;
+            }
+
+            #action-buttons .btn {
+                min-height: 54px !important;
+                font-size: .98em !important;
+            }
+
+            .spinner-container.timer-mode #timer-display {
+                width: 48%;
+                max-width: 150px;
+            }
+        }
+
+        /* Keep motion comfortable for reduced-motion users */
+        @media (prefers-reduced-motion: reduce) {
+            #card-display,
+            #action-buttons .btn,
+            .meter-gain,
+            .score-gain,
+            .gain-pop {
+                animation: none !important;
+                transition: none !important;
+            }
+        }
+
+
+        /* One consistent control zone for Begin/Skip, Completed/Failed and Bank/Gamble */
+        #action-buttons.control-zone,
+        #action-buttons {
+            min-height: 62px;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            align-items: stretch;
+            width: 100%;
+        }
+
+        #action-buttons .btn {
+            width: 100%;
+            min-height: 58px;
+            margin: 0 !important;
+            padding: 12px 8px !important;
+            border-radius: 16px;
+            font-size: 1.04em;
+            font-weight: 900;
+        }
+
+        /* During the timer the control zone stays reserved but empty,
+           preventing the layout from jumping. */
+        #action-buttons:empty {
+            visibility: hidden;
+        }
+
+        /* Hide the action card once the timed action has finished. */
+        #card-display.action-resolved {
+            visibility: hidden;
+        }
+
+        /* Compact mobile polish: keep core play area on one screen */
+        #game-screen {
+            overflow: hidden;
+        }
+
+        #game-screen .game-content {
+            padding-top: 4px;
+            padding-bottom: 4px;
+        }
+
+        #game-screen .turn-indicator {
+            margin-bottom: 6px;
+        }
+
+        #game-screen #card-display {
+            margin-top: 6px;
+            margin-bottom: 8px;
+        }
+
+        #game-screen #action-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        #game-screen #action-buttons .btn {
+            min-height: 58px;
+            padding: 13px 10px;
+            font-size: 1.08em;
+            font-weight: 900;
+            border-radius: 16px;
+            margin: 0;
+        }
+
+        #game-screen #action-buttons .btn-large {
+            width: 100%;
+        }
+
+        @media (max-width: 430px) {
+            #game-screen h1 {
+                font-size: 1.55em;
+                margin-bottom: 4px;
+            }
+
+            #game-screen .subtitle {
+                margin-bottom: 4px;
+            }
+
+            #game-screen 
+        /* Professional polish pass */
+        .card, #card-display {
+            border-radius: 22px;
+            box-shadow: 0 10px 30px rgba(0,0,0,.18);
+        }
+
+        .btn {
+            transition: transform .12s ease, box-shadow .12s ease;
+            box-shadow: 0 6px 18px rgba(0,0,0,.18);
+        }
+
+        .btn:active {
+            transform: scale(.96);
+        }
+
+        .score-board {
+            backdrop-filter: blur(8px);
+            border-radius: 18px;
+        }
+
+        .spinner-container {
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,.20));
+        }
+
+        /* Improved cartoon timer artwork */
+        .spinner-container.timer-mode #timer-display {
+            background:
+              radial-gradient(circle at 50% 50%, #fff6fb 0 16%, transparent 17%),
+              radial-gradient(ellipse at 35% 50%, #ffbfd2 0 30%, transparent 31%),
+              radial-gradient(ellipse at 65% 50%, #ffbfd2 0 30%, transparent 31%),
+              radial-gradient(ellipse at 50% 50%, #d65c89 0 58%, transparent 59%),
+              linear-gradient(180deg,#ffd4e1,#f39ab7);
+            border-width: 4px;
+        }
+.score-board {
+                margin: 6px 0;
+            }
+
+            #game-screen #action-buttons .btn {
+                min-height: 56px;
+                font-size: 1em;
+            }
+        }
+
+        /* Cartoon vulva timer replacing the spinner */
+        .spinner-container.timer-mode #timer-display {
+            width: 68%;
+            aspect-ratio: 0.78 / 1;
+            border-radius: 48% 48% 46% 46% / 52% 52% 48% 48%;
+            background:
+                radial-gradient(ellipse at 50% 50%, rgba(255,245,250,.92) 0 19%, transparent 20%),
+                radial-gradient(ellipse at 38% 50%, rgba(255,174,197,.98) 0 28%, transparent 29%),
+                radial-gradient(ellipse at 62% 50%, rgba(255,174,197,.98) 0 28%, transparent 29%),
+                radial-gradient(ellipse at 50% 50%, rgba(214,86,131,.95) 0 54%, transparent 55%),
+                linear-gradient(180deg, rgba(255,197,213,.98), rgba(239,121,160,.98));
+            border: 3px solid rgba(154,50,92,.75);
+            box-shadow:
+                0 12px 28px rgba(0,0,0,.28),
+                inset 0 0 0 5px rgba(255,255,255,.10),
+                inset 0 0 30px rgba(128,16,57,.14);
+            overflow: visible;
+        }
+
+        .spinner-container.timer-mode #timer-display::before,
+        .spinner-container.timer-mode #timer-display::after {
+            content: "";
+            position: absolute;
+            top: 13%;
+            bottom: 13%;
+            width: 28%;
+            border-radius: 50% 44% 44% 50%;
+            background: linear-gradient(180deg, #f7a9bf 0%, #e97fa2 50%, #d75f8e 100%);
+            border: 2px solid rgba(145,45,86,.58);
+            box-shadow: inset 5px 0 7px rgba(255,255,255,.18);
+            z-index: -1;
+        }
+
+        .spinner-container.timer-mode #timer-display::before {
+            left: -10%;
+            transform: rotate(8deg);
+        }
+
+        .spinner-container.timer-mode #timer-display::after {
+            right: -10%;
+            transform: scaleX(-1) rotate(8deg);
+        }
+
+        .spinner-container.timer-mode #timer-display {
+            isolation: isolate;
+        }
+
+        .spinner-container.timer-mode #timer-display span,
+        .spinner-container.timer-mode #timer-display {
+            color: #5a1330;
+            text-shadow:
+                0 2px 0 rgba(255,255,255,.42),
+                0 5px 16px rgba(92,17,48,.18);
+        }
+
+        .spinner-container.timer-mode #timer-display.countdown-pulse {
+            animation: countdownPulseInSpinner .58s cubic-bezier(.2,.9,.25,1);
+        }
+
+        .spinner-container.timer-mode #timer-display.countdown-pulse::before,
+        .spinner-container.timer-mode #timer-display.countdown-pulse::after {
+            animation: labiaPulse .58s cubic-bezier(.2,.9,.25,1);
+        }
+
+        @keyframes labiaPulse {
+            0%, 100% { filter: brightness(1); }
+            35% { filter: brightness(1.12); }
+            65% { filter: brightness(.98); }
+        }
+
+        .score-board {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            background: rgba(255, 105, 180, 0.1);
+            border-radius: 12px;
+            padding: 8px 10px;
+            border: 2px solid #ff69b4;
+        }
+
+        .player-score { text-align: center; }
+
+        .player-name {
+            font-size: 1.08em;
+            font-weight: bold;
+            color: #ff69b4;
+        }
+
+        .score-details {
+            font-size: 0.78em;
+            margin-top: 2px;
+        }
+
+        .banked {
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        .unbanked {
+            color: #ff69b4;
+            font-weight: bold;
+        }
+
+        .score-meter-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .inch-meter {
+            width: 54px;
+            height: 86px;
+            flex: 0 0 54px;
+            position: relative;
+        }
+
+
+        .meter-ball {
+            position: absolute;
+            bottom: 1px;
+            width: 19px;
+            height: 19px;
+            border: 2px solid rgba(255,255,255,0.92);
+            border-radius: 50%;
+            overflow: hidden;
+            background: rgba(255,255,255,0.05);
+            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.14);
+            z-index: 5;
+        }
+
+        .meter-ball-left { left: 1px; }
+        .meter-ball-right { right: 1px; }
+
+        .meter-ball-fill {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 0;
+            transition: height 420ms ease;
+            opacity: 0.9;
+        }
+
+        /* Cheeky cartoon outline used as the seven-inch progress meter */
+        .meter-body {
+            position: absolute;
+            left: 16px;
+            right: 16px;
+            top: 2px;
+            bottom: 9px;
+            overflow: hidden;
+            border: 2px solid rgba(255,255,255,0.92);
+            border-radius: 15px 15px 10px 10px;
+            background: rgba(255,255,255,0.05);
+            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15);
+        }
+
+        .meter-body::before,
+        .meter-body::after {
+            content: "";
+            position: absolute;
+            bottom: -7px;
+            width: 13px;
+            height: 15px;
+            border: 2px solid rgba(255,255,255,0.92);
+            border-top: none;
+            border-radius: 0 0 11px 11px;
+            background: rgba(255,255,255,0.05);
+            z-index: 4;
+        }
+
+        .meter-body::before { left: -5px; }
+        .meter-body::after  { right: -5px; }
+
+        .meter-fill {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            transition: height 420ms ease;
+        }
+
+        .banked-fill {
+            z-index: 1;
+            opacity: 0.96;
+        }
+
+        .unbanked-fill {
+            z-index: 2;
+            opacity: 0.48;
+            background-image: repeating-linear-gradient(
+                135deg,
+                rgba(255,255,255,0.32) 0 5px,
+                rgba(255,255,255,0.04) 5px 10px
+            );
+        }
+
+        .meter-ticks {
+            position: absolute;
+            inset: 0;
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        .meter-ticks span {
+            position: absolute;
+            left: 3px;
+            right: 3px;
+            height: 1px;
+            background: rgba(255,255,255,0.24);
+        }
+
+        .inch-meter.gain .meter-body {
+            animation: meterGain 450ms ease;
+        }
+
+        .inch-meter.drain .meter-body {
+            animation: meterDrain 520ms ease;
+        }
+
+        @keyframes meterGain {
+            0%, 100% { transform: scale(1); }
+            45% { transform: scale(1.1); }
+        }
+
+        @keyframes meterDrain {
+            0%, 100% { transform: translateY(0); }
+            45% { transform: translateY(5px); }
+        }
+
+        /* ---------- SPINNER ---------- */
+
+        .spinner-container {
+            position: relative;
+            width: min(82vw, 340px);
+            height: min(82vw, 340px);
+            margin: 8px 0 54px;
+            flex: 0 0 auto;
+        }
+
+        .spinner-wheel {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 4px solid #fff;
+            box-shadow:
+                0 0 22px rgba(255,105,180,0.55),
+                inset 0 0 22px rgba(0,0,0,0.28);
+
+            /*
+              Clockwise from the top:
+              Emma = top-right/top sector
+              Jim   = right/bottom-right sector
+              Both  = bottom/left-bottom sector
+              Bust  = left/top-left sector
+            */
+            background:
+                conic-gradient(
+                    from -45deg,
+                    #9932cc 0deg 90deg,
+                    #4169e1 90deg 180deg,
+                    #dc143c 180deg 270deg,
+                    #ff69b4 270deg 360deg
+                );
+        }
+
+        .spinner-wheel::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background:
+                radial-gradient(circle at center,
+                    rgba(255,255,255,0.11) 0 32%,
+                    transparent 33% 100%);
+            pointer-events: none;
+        }
+
+        .wheel-label {
+            position: absolute;
+            z-index: 2;
+            font-weight: 800;
+            font-size: 1.1em;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.8);
+            transform: translate(-50%, -50%);
+            user-select: none;
+        }
+
+        .wheel-label.both { top: 15%; left: 50%; }
+        .wheel-label.jim  { top: 50%; left: 85%; }
+        .wheel-label.bust { top: 85%; left: 50%; }
+        .wheel-label.emma { top: 50%; left: 15%; }
+
+        /*
+          Rotating assembly.
+          Its centre is exactly the centre of the wheel.
+          Positive CSS rotation is clockwise.
+        */
+        .willy-rotor {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 1px;
+            height: 1px;
+            z-index: 12;
+            transform: rotate(270deg);
+            transform-origin: 0 0;
+            will-change: transform;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            touch-action: none;
+        }
+
+        .willy-rotor.dragging {
+            cursor: grabbing;
+        }
+
+        .willy-rotor.spinning {
+            transition: transform 3.25s cubic-bezier(0.10, 0.74, 0.16, 1);
+        }
+
+        /*
+          Cartoon spinner inches to the RIGHT when rotor angle is 0deg.
+          Pivot sits at the base/centre of the shape.
+        */
+        .willy {
+            position: absolute;
+            left: -38px;
+            top: -41px;
+            width: 178px;
+            height: 82px;
+            filter: drop-shadow(0 7px 9px rgba(0,0,0,0.38));
+            transform: translateZ(0) rotate(-3deg);
+            touch-action: none;
+            cursor: grab;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .willy:active {
+            cursor: grabbing;
+        }
+
+        /*
+          Improved cheeky caricature:
+          smoother single-character silhouette, softer joins,
+          more natural curve, stronger shading, less "assembled".
+        */
+        .willy-shaft {
+            position: absolute;
+            left: 42px;
+            top: 20px;
+            width: 106px;
+            height: 44px;
+            border-radius: 31px 21px 22px 31px;
+            background:
+                linear-gradient(180deg,
+                    #ffd8df 0%,
+                    #ffb2c3 34%,
+                    #ff8daa 68%,
+                    #ef7295 100%);
+            border: 3px solid #aa2f5d;
+            box-shadow:
+                inset 0 7px 8px rgba(255,255,255,0.34),
+                inset 0 -7px 8px rgba(100,0,35,0.12);
+            transform: rotate(-5deg) skewX(-2deg);
+            transform-origin: left center;
+        }
+
+        .willy-shaft::before {
+            content: "";
+            position: absolute;
+            left: -10px;
+            top: 6px;
+            width: 28px;
+            height: 30px;
+            border-radius: 45% 55% 55% 45%;
+            background: inherit;
+            border-left: 3px solid #aa2f5d;
+            transform: rotate(3deg);
+        }
+
+        .willy-shaft::after {
+            content: "";
+            position: absolute;
+            left: 18px;
+            top: 7px;
+            width: 58px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.20);
+            transform: rotate(-4deg);
+        }
+
+        .willy-head {
+            position: absolute;
+            right: 0;
+            top: 12px;
+            width: 52px;
+            height: 58px;
+            border-radius: 56% 62% 60% 52%;
+            background:
+                linear-gradient(180deg,
+                    #ffb8ca 0%,
+                    #ff91ae 58%,
+                    #ed6d94 100%);
+            border: 3px solid #aa2f5d;
+            box-shadow:
+                inset 6px 4px 7px rgba(255,255,255,0.25),
+                inset -4px -5px 6px rgba(100,0,35,0.10);
+            transform: rotate(-4deg);
+        }
+
+        .willy-head::before {
+            content: "";
+            position: absolute;
+            left: 5px;
+            top: 7px;
+            width: 11px;
+            height: 38px;
+            border-radius: 50%;
+            border-left: 2px solid rgba(145,35,75,0.34);
+        }
+
+        .willy-head::after {
+            content: "";
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            width: 5px;
+            height: 12px;
+            transform: translateY(-50%);
+            border-radius: 50%;
+            background: rgba(135,28,67,0.62);
+        }
+
+        .ball {
+            position: absolute;
+            left: 3px;
+            width: 46px;
+            height: 46px;
+            border-radius: 55% 45% 58% 42%;
+            background:
+                linear-gradient(180deg,
+                    #ffd9e0 0%,
+                    #ffafc0 55%,
+                    #ee7a99 100%);
+            border: 3px solid #aa2f5d;
+            box-shadow:
+                inset 5px 6px 7px rgba(255,255,255,0.25);
+        }
+
+        .ball.top {
+            top: 1px;
+            transform: rotate(-12deg);
+        }
+
+        .ball.bottom {
+            bottom: 1px;
+            transform: rotate(12deg);
+        }
+
+        .center-dot {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 22px;
+            height: 22px;
+            background: #fff;
+            border-radius: 50%;
+            z-index: 18;
+            border: 3px solid #ff69b4;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.35);
+            pointer-events: none;
+        }
+
+        .result-display {
+            position: absolute;
+            bottom: -38px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.55em;
+            font-weight: bold;
+            color: #ffd700;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.35s, transform 0.35s;
+            white-space: nowrap;
+        }
+
+        .result-display.show {
+            opacity: 1;
+            transform: translateX(-50%) scale(1.08);
+        }
+
+        .legend {
+            position: absolute;
+            top: calc(100% + 38px);
+            left: 50%;
+            transform: translateX(-50%);
+            width: max-content;
+            max-width: 95vw;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            font-size: 0.88em;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 3px;
+        }
+
+        /* ---------- REST OF GAME ---------- */
+
+        .card-display {
+            background: rgba(255, 255, 255, 0.1);
+            border: 3px solid #ff69b4;
+            border-radius: 14px;
+            padding: 12px 14px;
+            text-align: center;
+            min-height: 78px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.05em;
+            margin: 4px 0;
+            width: 100%;
+        }
+
+        .card-display.spin-prompt {
+            cursor: pointer;
+            touch-action: manipulation;
+            border-color: #ffd700;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            box-shadow: 0 0 14px rgba(255, 215, 0, 0.16);
+        }
+
+        .card-display.spin-prompt:active {
+            transform: scale(0.985);
+        }
+
+        .timer-display {
+            font-size: 2.6em;
+            color: #ffd700;
+            text-align: center;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .timer-bar {
+            width: 100%;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .timer-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #ff69b4, #ffd700);
+            transition: width 1s linear;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #ff69b4, #ff1493);
+            border: none;
+            color: white;
+            padding: 10px 22px;
+            font-size: 1em;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin: 5px;
+            touch-action: manipulation;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(255, 105, 180, 0.5);
+        }
+
+        .btn:active { transform: scale(0.95); }
+
+        .btn:disabled {
+            opacity: 0.55;
+            cursor: default;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #4169e1, #6495ed);
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #dc143c, #ff4444);
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #32cd32, #228b22);
+        }
+
+        .btn-large {
+            padding: 13px 30px;
+            font-size: 1.12em;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+        }
+
+        input {
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #ff69b4;
+            background: rgba(255, 105, 180, 0.1);
+            color: white;
+            font-size: 1.1em;
+        }
+
+        input::placeholder {
+            color: #ff69b4;
+            opacity: 0.7;
+        }
+
+        .turn-indicator {
+            font-size: 1.12em;
+            color: #ffd700;
+            text-align: center;
+            margin-bottom: 1px;
+        }
+
+        .bust-message {
+            font-size: 3em;
+            color: #dc143c;
+            text-align: center;
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .win-message {
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #ffd700, #ff69b4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+        }
+
+        .prize-text {
+            font-size: 1.2em;
+            color: #ff69b4;
+            text-align: center;
+            margin: 20px;
+            padding: 20px;
+            border: 2px solid #ff69b4;
+            border-radius: 15px;
+            background: rgba(255, 105, 180, 0.1);
+        }
+
+        .deck-info {
+            font-size: 0.72em;
+            color: #ff69b4;
+            text-align: center;
+            margin-top: 1px;
+        }
+
+        @media (max-width: 380px) {
+            h1 { font-size: 2.55em; }
+            .btn-large { padding: 17px 38px; font-size: 1.25em; }
+            .legend { gap: 8px; font-size: 0.8em; }
+        }
+
+
+        @media (max-height: 760px) {
+            body {
+                padding-top: 5px;
+                padding-bottom: 5px;
+            }
+
+            .screen { gap: 5px; }
+
+            .score-board {
+                padding: 6px 8px;
+            }
+
+            .turn-indicator {
+                font-size: 1em;
+                margin-bottom: 0;
+            }
+
+            .card-display {
+                min-height: 70px;
+                padding: 9px 12px;
+            }
+
+            .timer-display {
+                font-size: 2.25em;
+                margin: 2px 0;
+            }
+
+            .timer-bar {
+                margin: 2px 0;
+            }
+
+            .deck-info {
+                font-size: 0.66em;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .willy-rotor.spinning { transition-duration: 1s; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Screen 0: Splash -->
+    <div id="splash-screen" class="screen active" onclick="showStart()">
+        <div class="splash-logo">
+            <h1>Flick The Dick</h1>
+            <div class="edition">The Wank Bank Edition</div>
+        </div>
+
+        <div class="splash-mascot" aria-hidden="true">
+            <div class="mascot-ball left"></div>
+            <div class="mascot-ball right"></div>
+            <div class="mascot-body"></div>
+        </div>
+
+        <div class="splash-copy">Ready to make a deposit?</div>
+        <div class="splash-enter">Enter The Wank Bank</div>
+        <div class="splash-tagline">First to 7 inches wins. Size matters.</div>
+    </div>
+
+    <!-- Screen 1: Aim of the Game -->
+    <div id="start-screen" class="screen">
+        <h1>Flick The Dick</h1>
+        <p class="subtitle">The Wank Bank Edition</p>
+
+        <div class="aim-card">
+            <h2>Aim of the Game</h2>
+            <div class="aim-rhyme">
+                Flick that Dick,<br>
+                It’s not Big or Thick,<br>
+                I know it’s silly,<br>
+                Just spin that Willy,<br>
+                7 inches is what you need,<br>
+                So act, gamble and bank with speed!
+            </div>
+        </div>
+
+        <button class="btn btn-large" onclick="startGame()">Start Game</button>
+    </div>
+
+    <!-- Screen 2: Game -->
+    <div id="game-screen" class="screen">
+
+        <div class="score-board">
+            <div class="player-score">
+                <div class="player-name" id="p1-display">Emma</div>
+                <div class="score-meter-row">
+                    <div class="inch-meter" id="p1-meter" aria-label="Emma inch meter">
+                        <div class="meter-ball meter-ball-left">
+                            <div class="meter-ball-fill" id="p1-ball-left-fill"></div>
+                        </div>
+                        <div class="meter-ball meter-ball-right">
+                            <div class="meter-ball-fill" id="p1-ball-right-fill"></div>
+                        </div>
+                        <div class="meter-body">
+                            <div class="meter-fill banked-fill" id="p1-banked-fill"></div>
+                            <div class="meter-fill unbanked-fill" id="p1-unbanked-fill"></div>
+                            <div class="meter-ticks">
+                                <span style="bottom:14.285%"></span>
+                                <span style="bottom:28.57%"></span>
+                                <span style="bottom:42.855%"></span>
+                                <span style="bottom:57.14%"></span>
+                                <span style="bottom:71.425%"></span>
+                                <span style="bottom:85.71%"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="score-details">
+                        <span class="banked" id="p1-banked">0&quot; banked</span><br>
+                        <span class="unbanked" id="p1-unbanked">0&quot; unbanked</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="player-score">
+                <div class="player-name" id="p2-display">Jim</div>
+                <div class="score-meter-row">
+                    <div class="inch-meter" id="p2-meter" aria-label="Jim inch meter">
+                        <div class="meter-ball meter-ball-left">
+                            <div class="meter-ball-fill" id="p2-ball-left-fill"></div>
+                        </div>
+                        <div class="meter-ball meter-ball-right">
+                            <div class="meter-ball-fill" id="p2-ball-right-fill"></div>
+                        </div>
+                        <div class="meter-body">
+                            <div class="meter-fill banked-fill" id="p2-banked-fill"></div>
+                            <div class="meter-fill unbanked-fill" id="p2-unbanked-fill"></div>
+                            <div class="meter-ticks">
+                                <span style="bottom:14.285%"></span>
+                                <span style="bottom:28.57%"></span>
+                                <span style="bottom:42.855%"></span>
+                                <span style="bottom:57.14%"></span>
+                                <span style="bottom:71.425%"></span>
+                                <span style="bottom:85.71%"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="score-details">
+                        <span class="banked" id="p2-banked">0&quot; banked</span><br>
+                        <span class="unbanked" id="p2-unbanked">0&quot; unbanked</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="turn-indicator" id="turn-indicator">Emma's Turn</div>
+
+        <div class="spinner-container" id="spinner-container" style="display:none;">
+            <div class="spinner-wheel">
+                <div class="wheel-label emma">Emma</div>
+                <div class="wheel-label jim">Jim</div>
+                <div class="wheel-label both">Both</div>
+                <div class="wheel-label bust">Bust</div>
+            </div>
+
+            <div class="willy-rotor" id="willy-rotor">
+                <div class="willy" aria-hidden="true">
+                    <div class="ball top"></div>
+                    <div class="ball bottom"></div>
+                    <div class="willy-shaft"></div>
+                    <div class="willy-head"></div>
+                </div>
+            </div>
+
+            <div class="center-dot"></div>
+
+            <div class="result-display" id="result-display"></div>
+
+        
+        <div class="timer-display" id="timer-display" style="display:none;">30</div>
+    </div>
+
+        <div class="card-display" id="card-display" style="display:none;">
+            <p id="card-text">Draw a card...</p>
+        </div>
+<div class="timer-bar" id="timer-bar" style="display:none;">
+            <div class="timer-progress" id="timer-progress"></div>
+        </div>
+
+        <div class="button-row control-zone" id="action-buttons"></div>
+
+        <div class="deck-info" id="deck-info"></div>
+    </div>
+
+    <!-- Screen 3: Bust -->
+    <div id="bust-screen" class="screen">
+        <div class="bust-message">💥 BUST! 💥</div>
+
+        <p id="bust-inches-lost"
+           style="font-size:1.5em; text-align:center; margin:20px 0;"></p>
+
+        <p style="text-align:center; color:#ff69b4; font-size:1.2em;">
+            All completed cards returned to deck!
+        </p>
+
+        <br>
+        <button class="btn btn-large" onclick="continueAfterBust()">Continue</button>
+    </div>
+
+    <!-- Screen 4: Win -->
+    <div id="win-screen" class="screen">
+        <div class="win-message">🎉 Winner! 🎉</div>
+
+        <p id="winner-name"
+           style="font-size:2em; text-align:center; margin:20px 0;"></p>
+
+        <div class="prize-text">
+            The loser must obey every command the winner makes for 24 hours<br>
+            <strong>Starting from when the winner says</strong>
+        </div>
+
+        <p style="text-align:center; color:#ff69b4; font-size:1.3em;">
+            Claim your prize! 😈
+        </p>
+
+        <br>
+        <button class="btn btn-large" onclick="resetGame()">Play Again</button>
+    </div>
+
+    <script>
+        // ------------------------------------------------------------
+        // AUDIO
+        // ------------------------------------------------------------
+
+        let audioCtx = null;
+
+        
+        function subtleHaptic(pattern = 12) {
+            try {
+                if (navigator.vibrate) navigator.vibrate(pattern);
+            } catch (e) {}
+        }
+
+function ensureAudio() {
+            if (!audioCtx) {
+                const AC = window.AudioContext || window.webkitAudioContext;
+                if (AC) audioCtx = new AC();
+            }
+
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume().catch(() => {});
+            }
+        }
+
+
+        function playCountdownBeep(second) {
+            // Rising game-show tones for the final five seconds.
+            ensureAudio();
+            if (!audioCtx) return;
+
+            const now = audioCtx.currentTime;
+            const frequencies = {
+                5: 430,
+                4: 510,
+                3: 600,
+                2: 720,
+                1: 900
+            };
+            const frequency = frequencies[second] || 430;
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            osc.type = second === 1 ? 'square' : 'sine';
+            osc.frequency.setValueAtTime(frequency, now);
+            osc.frequency.exponentialRampToValueAtTime(
+                frequency * (second === 1 ? 1.08 : 1.03),
+                now + 0.14
+            );
+
+            gain.gain.setValueAtTime(0.0001, now);
+            gain.gain.exponentialRampToValueAtTime(second === 1 ? 0.22 : 0.15, now + 0.012);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + (second === 1 ? 0.22 : 0.16));
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            osc.start(now);
+            osc.stop(now + (second === 1 ? 0.24 : 0.18));
+        }
+
+        function playSound(type) {
+            ensureAudio();
+            if (!audioCtx) return;
+
+            try {
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+
+                switch(type) {
+                    case 'spin':
+                        oscillator.frequency.value = 210;
+                        oscillator.type = 'sine';
+                        gainNode.gain.setValueAtTime(0.22, now);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+                        oscillator.start(now);
+                        oscillator.stop(now + 0.12);
+                        break;
+
+                    case 'alarm':
+                        playCartoonTimerAlarm();
+                        return;
+
+                    case 'bank':
+                        oscillator.frequency.value = 600;
+                        oscillator.type = 'sine';
+                        gainNode.gain.setValueAtTime(0.25, now);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                        oscillator.start(now);
+                        oscillator.stop(now + 0.3);
+                        break;
+
+                    case 'bust':
+                        playComedyBustSound();
+                        return;
+
+                    case 'win':
+                        oscillator.frequency.value = 523;
+                        oscillator.type = 'sine';
+                        gainNode.gain.setValueAtTime(0.25, now);
+                        oscillator.frequency.setValueAtTime(523, now);
+                        oscillator.frequency.setValueAtTime(659, now + 0.1);
+                        oscillator.frequency.setValueAtTime(784, now + 0.2);
+                        oscillator.frequency.setValueAtTime(1047, now + 0.3);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 1);
+                        oscillator.start(now);
+                        oscillator.stop(now + 1);
+                        break;
+                }
+            } catch (e) {
+                console.warn('Audio unavailable:', e);
+            }
+        }
+
+
+
+
+        // Comedy spinner audio: a rubbery wobble that follows the length and
+        // strength of the flick, then hands off to a short landing boing.
+        let comedySpinSound = null;
+
+        function startComedySpinSound(speed, durationMs) {
+            ensureAudio();
+            if (!audioCtx) return;
+
+            stopComedySpinSound(false);
+
+            try {
+                const now = audioCtx.currentTime;
+                const duration = Math.max(0.3, durationMs / 1000);
+
+                const carrier = audioCtx.createOscillator();
+                const wobble = audioCtx.createOscillator();
+                const wobbleDepth = audioCtx.createGain();
+                const gainNode = audioCtx.createGain();
+
+                carrier.type = 'sine';
+                carrier.frequency.setValueAtTime(118 + Math.min(speed, 2.2) * 18, now);
+                carrier.frequency.exponentialRampToValueAtTime(82, now + duration);
+
+                // Fast flick = quicker initial wobble. It then comically slows
+                // down along with the visual spinner.
+                wobble.type = 'sine';
+                wobble.frequency.setValueAtTime(11 + Math.min(speed, 2.2) * 4, now);
+                wobble.frequency.exponentialRampToValueAtTime(1.7, now + duration);
+
+                wobbleDepth.gain.setValueAtTime(52, now);
+                wobbleDepth.gain.exponentialRampToValueAtTime(18, now + duration);
+
+                gainNode.gain.setValueAtTime(0.0001, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.18, now + 0.035);
+                gainNode.gain.setValueAtTime(0.18, Math.max(now + 0.04, now + duration - 0.18));
+                gainNode.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+                wobble.connect(wobbleDepth);
+                wobbleDepth.connect(carrier.frequency);
+                carrier.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                carrier.start(now);
+                wobble.start(now);
+                carrier.stop(now + duration + 0.03);
+                wobble.stop(now + duration + 0.03);
+
+                comedySpinSound = { carrier, wobble, gainNode };
+            } catch (e) {
+                console.warn('Comedy spinner audio unavailable:', e);
+                comedySpinSound = null;
+            }
+        }
+
+        function stopComedySpinSound(playBoing = true) {
+            if (comedySpinSound && audioCtx) {
+                try {
+                    const now = audioCtx.currentTime;
+                    comedySpinSound.gainNode.gain.cancelScheduledValues(now);
+                    comedySpinSound.gainNode.gain.setValueAtTime(0.0001, now);
+                    comedySpinSound.carrier.stop(now + 0.01);
+                    comedySpinSound.wobble.stop(now + 0.01);
+                } catch (e) {}
+                comedySpinSound = null;
+            }
+
+            if (playBoing) playLandingBoing();
+        }
+
+        function playLandingBoing() {
+            ensureAudio();
+            if (!audioCtx) return;
+
+            try {
+                const now = audioCtx.currentTime;
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(245, now);
+                oscillator.frequency.exponentialRampToValueAtTime(92, now + 0.34);
+
+                gainNode.gain.setValueAtTime(0.22, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.38);
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                oscillator.start(now);
+                oscillator.stop(now + 0.4);
+            } catch (e) {
+                console.warn('Landing boing unavailable:', e);
+            }
+        }
+
+
+        // Three short rising cartoon warning pulses: clearly "time's up"
+        // without sounding like a normal phone alarm.
+        function playCartoonTimerAlarm() {
+            ensureAudio();
+            if (!audioCtx) return;
+
+            try {
+                const now = audioCtx.currentTime;
+                const pulseStarts = [0, 0.24, 0.48];
+                const startFreqs = [390, 500, 640];
+                const endFreqs = [520, 670, 850];
+
+                pulseStarts.forEach((offset, index) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    const start = now + offset;
+                    const stop = start + 0.18;
+
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(startFreqs[index], start);
+                    osc.frequency.exponentialRampToValueAtTime(endFreqs[index], stop);
+
+                    gain.gain.setValueAtTime(0.0001, start);
+                    gain.gain.exponentialRampToValueAtTime(0.16, start + 0.018);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, stop);
+
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(start);
+                    osc.stop(stop + 0.02);
+                });
+            } catch (e) {
+                console.warn('Cartoon timer alarm unavailable:', e);
+            }
+        }
+
+        // Descending comedy "womp womp womp" followed by a short
+        // balloon-like deflation hiss for Bust.
+        function playComedyBustSound() {
+            ensureAudio();
+            if (!audioCtx) return;
+
+            try {
+                const now = audioCtx.currentTime;
+                const starts = [0, 0.30, 0.62];
+                const high = [220, 185, 150];
+                const low = [125, 102, 76];
+
+                starts.forEach((offset, index) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    const start = now + offset;
+                    const duration = index === 2 ? 0.42 : 0.26;
+                    const stop = start + duration;
+
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(high[index], start);
+                    osc.frequency.exponentialRampToValueAtTime(low[index], stop);
+
+                    gain.gain.setValueAtTime(0.0001, start);
+                    gain.gain.exponentialRampToValueAtTime(0.14, start + 0.02);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, stop);
+
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(start);
+                    osc.stop(stop + 0.02);
+                });
+
+                const hissStart = now + 1.02;
+                const hissDuration = 0.65;
+                const buffer = audioCtx.createBuffer(1, Math.floor(audioCtx.sampleRate * hissDuration), audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < data.length; i++) {
+                    const envelope = 1 - (i / data.length);
+                    data[i] = (Math.random() * 2 - 1) * envelope;
+                }
+
+                const noise = audioCtx.createBufferSource();
+                const filter = audioCtx.createBiquadFilter();
+                const gain = audioCtx.createGain();
+
+                noise.buffer = buffer;
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(1200, hissStart);
+                filter.frequency.exponentialRampToValueAtTime(260, hissStart + hissDuration);
+                gain.gain.setValueAtTime(0.09, hissStart);
+                gain.gain.exponentialRampToValueAtTime(0.0001, hissStart + hissDuration);
+
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(audioCtx.destination);
+                noise.start(hissStart);
+                noise.stop(hissStart + hissDuration);
+            } catch (e) {
+                console.warn('Comedy bust sound unavailable:', e);
+            }
+        }
+
+
+        // ------------------------------------------------------------
+        // GAME STATE
+        // ------------------------------------------------------------
+
+        let player1 = {
+            name: 'Emma',
+            banked: 0,
+            unbanked: 0,
+            completedCards: []
+        };
+
+        let player2 = {
+            name: 'Jim',
+            banked: 0,
+            unbanked: 0,
+            completedCards: []
+        };
+
+        let currentPlayer = null;
+        let otherPlayer = null;
+        let currentCard = null;
+        let currentDeck = null;
+        let actionPlayer = null;      // Person whose named card is being performed
+        let nextPlayer = null;        // Person who gets the next spin after this card
+        let spinOwner = null;         // Person who made the current spin
+        let isSpinning = false;
+
+        // Physical flick state
+        let isDraggingSpinner = false;
+        let activePointerId = null;
+        let lastPointerAngle = 0;
+        let lastPointerTime = 0;
+        let angularVelocity = 0;       // degrees per millisecond
+        let dragTravel = 0;
+
+        let timerInterval = null;
+        let awaitingBankOrGamble = false;
+        let timeRemaining = 30;
+
+        // Persistent spinner rotation.
+        // Starts pointing UP at Both.
+        let currentRotation = 270;
+
+
+        // ------------------------------------------------------------
+        // DECKS
+        // ------------------------------------------------------------
+
+        const emmasDeck = [
+            "Give him a blowjob",
+            "Give him a handjob",
+            "Give him a blowjob while playing with his balls and teasing his ass",
+            "Play with his nipples",
+            "Tease his ass",
+            "Play with his balls",
+            "Kiss his whole body",
+            "Talk dirty to him whilst teasing the tip of his cock",
+            "Edge him",
+            "Deep throat him",
+            "Sit on his face and grind"
+        ];
+
+        const jimsDeck = [
+            "Go down on her",
+            "Finger her",
+            "Rub her clit",
+            "Play with her breasts",
+            "Kiss her neck",
+            "Spank her",
+            "Tease her ass",
+            "Lick her from behind",
+            "Kiss her whole body",
+            "Lick her clit, rub her g-spot, and finger her ass simultaneously",
+            "Lick her while she sits on your face"
+        ];
+
+        const bothDeck = [
+            "69 each other",
+            "Take turns giving oral",
+            "Masturbate each other",
+            "Have sex missionary style",
+            "Have sex with her on top",
+            "Have sex from behind",
+            "Have spooning sex",
+            "Have standing sex",
+            "Edge each other",
+            "Make each other cum at the same time",
+            "Masturbate at the same time while watching each other"
+        ];
+
+        let emmasDeckCurrent = [...emmasDeck];
+        let jimsDeckCurrent = [...jimsDeck];
+        let bothDeckCurrent = [...bothDeck];
+
+
+        // ------------------------------------------------------------
+        // SCREENS
+        // ------------------------------------------------------------
+
+        function showStart() {
+            ensureAudio();
+            document.getElementById('splash-screen').classList.remove('active');
+            document.getElementById('start-screen').classList.add('active');
+        }
+
+        function startGame() {
+            awaitingBankOrGamble = false;
+            ensureAudio();
+
+            // This edition is specifically for Emma and Jim.
+            player1.name = 'Emma';
+            player2.name = 'Jim';
+
+            document.getElementById('p1-display').textContent = player1.name;
+            document.getElementById('p2-display').textContent = player2.name;
+
+            // Update spinner labels to match names.
+            document.querySelector('.wheel-label.emma').textContent = player1.name;
+            document.querySelector('.wheel-label.jim').textContent = player2.name;
+
+            emmasDeckCurrent = [...emmasDeck];
+            jimsDeckCurrent = [...jimsDeck];
+            bothDeckCurrent = [...bothDeck];
+
+            player1.banked = 0;
+            player1.unbanked = 0;
+            player1.completedCards = [];
+
+            player2.banked = 0;
+            player2.unbanked = 0;
+            player2.completedCards = [];
+
+            currentRotation = 270;
+            actionPlayer = null;
+            nextPlayer = null;
+            spinOwner = null;
+
+            const rotor = document.getElementById('willy-rotor');
+            rotor.classList.remove('spinning', 'dragging');
+            rotor.style.transition = 'none';
+            rotor.style.transform = `rotate(${currentRotation}deg)`;
+
+            updateScores();
+
+            currentPlayer = player1;
+            otherPlayer = player2;
+
+            document.getElementById('start-screen').classList.remove('active');
+            document.getElementById('game-screen').classList.add('active');
+
+            updateTurnIndicator();
+            updateDeckInfo();
+            showSpinReady();
+        }
+
+
+        // ------------------------------------------------------------
+        // UI
+        // ------------------------------------------------------------
+
+        function updateScores() {
+            document.getElementById('p1-banked').textContent =
+                player1.banked + '" banked';
+
+            document.getElementById('p1-unbanked').textContent =
+                player1.unbanked + '" unbanked';
+
+            document.getElementById('p2-banked').textContent =
+                player2.banked + '" banked';
+
+            document.getElementById('p2-unbanked').textContent =
+                player2.unbanked + '" unbanked';
+
+            updateInchMeter(player1, 1);
+            updateInchMeter(player2, 2);
+        }
+
+        function updateInchMeter(player, number) {
+            const banked = Math.max(0, Math.min(7, player.banked));
+            const unbankedVisible =
+                Math.max(0, Math.min(7 - banked, player.unbanked));
+
+            const bankedPercent = (banked / 7) * 100;
+            const totalPercent =
+                ((banked + unbankedVisible) / 7) * 100;
+
+            const bankedFill =
+                document.getElementById(`p${number}-banked-fill`);
+            const unbankedFill =
+                document.getElementById(`p${number}-unbanked-fill`);
+
+            if (!bankedFill || !unbankedFill) return;
+
+            const colour = number === 1 ? '#ff69b4' : '#4169e1';
+
+            bankedFill.style.backgroundColor = colour;
+            bankedFill.style.height = `${bankedPercent}%`;
+
+            unbankedFill.style.backgroundColor = colour;
+            unbankedFill.style.height = `${totalPercent}%`;
+
+            const leftBall =
+                document.getElementById(`p${number}-ball-left-fill`);
+            const rightBall =
+                document.getElementById(`p${number}-ball-right-fill`);
+
+            if (leftBall && rightBall) {
+                leftBall.style.backgroundColor = colour;
+                rightBall.style.backgroundColor = colour;
+                leftBall.style.height = `${totalPercent}%`;
+                rightBall.style.height = `${totalPercent}%`;
+            }
+        }
+
+        function animateMeterGain(player) {
+            const meter = document.getElementById(
+                player === player1 ? 'p1-meter' : 'p2-meter'
+            );
+
+            if (!meter) return;
+
+            meter.classList.remove('gain');
+            void meter.offsetWidth;
+            meter.classList.add('gain');
+
+            setTimeout(() => meter.classList.remove('gain'), 520);
+        }
+
+        function animateMeterDrain(player) {
+            const meter = document.getElementById(
+                player === player1 ? 'p1-meter' : 'p2-meter'
+            );
+
+            if (!meter) return;
+
+            meter.classList.remove('drain');
+            void meter.offsetWidth;
+            meter.classList.add('drain');
+
+            setTimeout(() => meter.classList.remove('drain'), 600);
+        }
+
+        function updateTurnIndicator() {
+            document.getElementById('turn-indicator').textContent =
+                currentPlayer.name + "'s Turn";
+        }
+
+        function updateDeckInfo() {
+            const info =
+                `${player1.name}'s deck: ${emmasDeckCurrent.length} | ` +
+                `${player2.name}'s deck: ${jimsDeckCurrent.length} | ` +
+                `Both: ${bothDeckCurrent.length}`;
+
+            document.getElementById('deck-info').textContent = info;
+        }
+
+
+        // ------------------------------------------------------------
+        // PHYSICAL TOUCH / FLICK SPINNER
+        // ------------------------------------------------------------
+
+        /*
+          Result numbers:
+          0 = Emma / Player 1  (left)
+          1 = Jim / Player 2   (right)
+          2 = Both             (top)
+          3 = Bust             (bottom)
+
+          Willy inches RIGHT at 0 degrees.
+          CSS positive rotation goes clockwise.
+        */
+
+        const sectorCentre = {
+            0: 180, // Emma - left
+            1: 0,   // Jim - right
+            2: 270, // Both - top
+            3: 90   // Bust - bottom
+        };
+
+        function normaliseAngle(angle) {
+            return ((angle % 360) + 360) % 360;
+        }
+
+        function shortestAngleDelta(from, to) {
+            let delta = normaliseAngle(to) - normaliseAngle(from);
+
+            if (delta > 180) delta -= 360;
+            if (delta < -180) delta += 360;
+
+            return delta;
+        }
+
+        function resultFromAngle(angle) {
+            const a = normaliseAngle(angle);
+
+            // Right = Jim
+            if (a >= 315 || a < 45) return 1;
+
+            // Bottom = Bust
+            if (a >= 45 && a < 135) return 3;
+
+            // Left = Emma
+            if (a >= 135 && a < 225) return 0;
+
+            // Top = Both
+            return 2;
+        }
+
+        function clearCardPromptMode() {
+            const card = document.getElementById('card-display');
+            card.classList.remove('spin-prompt');
+            card.onclick = null;
+        }
+
+        function showSpinReady() {
+            document.getElementById('card-display').classList.remove('action-resolved');
+            const gameScreen = document.getElementById('game-screen');
+            document.getElementById('spinner-container').classList.remove('timer-mode');
+            gameScreen.classList.add('active');
+
+            const rotor = document.getElementById('willy-rotor');
+
+            isSpinning = false;
+            isDraggingSpinner = false;
+            activePointerId = null;
+            angularVelocity = 0;
+            dragTravel = 0;
+
+            rotor.classList.remove('spinning', 'dragging');
+            rotor.style.transition = 'none';
+            rotor.style.transform = `rotate(${currentRotation}deg)`;
+
+            document.getElementById('spinner-container').style.display = 'block';
+
+            const card = document.getElementById('card-display');
+            card.style.display = 'flex';
+            card.classList.add('spin-prompt');
+            card.onclick = giveItAFlick;
+
+            document.getElementById('card-text').textContent =
+                'Go On Flick that Dick';
+
+            document.getElementById('action-buttons').innerHTML = '';
+
+            document.getElementById('timer-display').style.display = 'none';
+            document.getElementById('timer-bar').style.display = 'none';
+            document.getElementById('result-display').classList.remove('show');
+        }
+
+        function pointerAngle(event) {
+            const wheel = document.getElementById('spinner-container');
+            const rect = wheel.getBoundingClientRect();
+
+            const centreX = rect.left + rect.width / 2;
+            const centreY = rect.top + rect.height / 2;
+
+            return Math.atan2(
+                event.clientY - centreY,
+                event.clientX - centreX
+            ) * 180 / Math.PI;
+        }
+
+        function beginPhysicalFlick(event) {
+            if (awaitingBankOrGamble) return;
+            if (isSpinning) return;
+            if (!document.getElementById('game-screen').classList.contains('active')) return;
+
+            ensureAudio();
+
+            const rotor = document.getElementById('willy-rotor');
+
+            isDraggingSpinner = true;
+            activePointerId = event.pointerId;
+            spinOwner = currentPlayer;
+            angularVelocity = 0;
+            dragTravel = 0;
+
+            lastPointerAngle = pointerAngle(event);
+            lastPointerTime = performance.now();
+
+            rotor.classList.remove('spinning');
+            rotor.classList.add('dragging');
+            rotor.style.transition = 'none';
+
+            try {
+                rotor.setPointerCapture(event.pointerId);
+            } catch (e) {
+                // Safe fallback for older iOS implementations.
+            }
+
+            event.preventDefault();
+        }
+
+        function movePhysicalFlick(event) {
+            if (!isDraggingSpinner || event.pointerId !== activePointerId) return;
+
+            const now = performance.now();
+            const angle = pointerAngle(event);
+            const delta = shortestAngleDelta(lastPointerAngle, angle);
+            const dt = Math.max(8, now - lastPointerTime);
+
+            currentRotation += delta;
+            dragTravel += Math.abs(delta);
+
+            const instantVelocity = delta / dt;
+
+            // Smooth noisy finger movement while preserving direction.
+            angularVelocity =
+                (angularVelocity * 0.58) +
+                (instantVelocity * 0.42);
+
+            // Avoid extreme values from a single erratic pointer sample.
+            angularVelocity = Math.max(
+                -2.4,
+                Math.min(2.4, angularVelocity)
+            );
+
+            document.getElementById('willy-rotor').style.transform =
+                `rotate(${currentRotation}deg)`;
+
+            lastPointerAngle = angle;
+            lastPointerTime = now;
+
+            event.preventDefault();
+        }
+
+        function endPhysicalFlick(event) {
+            if (!isDraggingSpinner || event.pointerId !== activePointerId) return;
+
+            const rotor = document.getElementById('willy-rotor');
+
+            isDraggingSpinner = false;
+            activePointerId = null;
+            rotor.classList.remove('dragging');
+
+            try {
+                rotor.releasePointerCapture(event.pointerId);
+            } catch (e) {}
+
+            /*
+              If somebody only taps/holds the spinner rather than actually
+              flicking it, leave it where it is. The prompt can still be
+              tapped to trigger the fallback spin.
+            */
+            if (Math.abs(angularVelocity) < 0.08 || dragTravel < 7) {
+                angularVelocity = 0;
+                return;
+            }
+
+            spinFromVelocity(angularVelocity);
+            event.preventDefault();
+        }
+
+        function spinFromVelocity(velocity) {
+            if (isSpinning) return;
+
+            ensureAudio();
+            isSpinning = true;
+
+            if (!spinOwner) spinOwner = currentPlayer;
+
+            clearCardPromptMode();
+            document.getElementById('card-display').style.display = 'none';
+            document.getElementById('result-display').classList.remove('show');
+
+            /*
+              Convert the user's release speed into coast distance.
+              A real quick flick produces several full turns, while a softer
+              flick makes a noticeably shorter spin.
+            */
+            const sign = velocity < 0 ? -1 : 1;
+            const speed = Math.abs(velocity);
+
+            let coastDistance = speed * 1900;
+            coastDistance = Math.max(540, Math.min(3600, coastDistance));
+
+            currentRotation += sign * coastDistance;
+
+            const duration =
+                Math.max(1700, Math.min(3900, 1250 + speed * 1200));
+
+            startComedySpinSound(speed, duration);
+
+            const rotor = document.getElementById('willy-rotor');
+
+            rotor.classList.add('spinning');
+            rotor.style.transition =
+                `transform ${duration}ms cubic-bezier(0.08, 0.68, 0.14, 1)`;
+
+            let finished = false;
+
+            const finishSpin = () => {
+                if (finished) return;
+                finished = true;
+
+                rotor.removeEventListener('transitionend', onTransitionEnd);
+                rotor.classList.remove('spinning');
+                rotor.style.transition = 'none';
+
+                isSpinning = false;
+                angularVelocity = 0;
+                dragTravel = 0;
+
+                stopComedySpinSound(true);
+
+                const result = resultFromAngle(currentRotation);
+
+                showResult(result);
+
+                setTimeout(() => {
+                    handleSpinResult(result);
+                }, 750);
+            };
+
+            const onTransitionEnd = (evt) => {
+                if (evt.propertyName === 'transform') {
+                    finishSpin();
+                }
+            };
+
+            rotor.addEventListener('transitionend', onTransitionEnd);
+
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    rotor.style.transform =
+                        `rotate(${currentRotation}deg)`;
+                });
+            });
+
+            // iOS/Safari safety net if transitionend is lost.
+            setTimeout(finishSpin, duration + 350);
+        }
+
+        /*
+          Fallback: tapping the prompt performs a natural automatic spin.
+          It deliberately looks like a prompt rather than a separate button.
+        */
+        function giveItAFlick() {
+            if (awaitingBankOrGamble) return;
+            if (isSpinning || isDraggingSpinner) return;
+
+            spinOwner = currentPlayer;
+
+            const direction = Math.random() < 0.18 ? -1 : 1;
+            const fallbackVelocity =
+                direction * (1.05 + Math.random() * 0.65);
+
+            spinFromVelocity(fallbackVelocity);
+        }
+
+        function setupPhysicalSpinner() {
+            const rotor = document.getElementById('willy-rotor');
+
+            rotor.addEventListener('pointerdown', beginPhysicalFlick);
+            rotor.addEventListener('pointermove', movePhysicalFlick);
+            rotor.addEventListener('pointerup', endPhysicalFlick);
+            rotor.addEventListener('pointercancel', endPhysicalFlick);
+        }
+
+        setupPhysicalSpinner();
+
+        function showResult(result) {
+            const resultDisplay =
+                document.getElementById('result-display');
+
+            const labels = [
+                player1.name,
+                player2.name,
+                'Both',
+                'Bust'
+            ];
+
+            const colors = [
+                '#ff69b4',
+                '#4169e1',
+                '#9932cc',
+                '#dc143c'
+            ];
+
+            resultDisplay.textContent = labels[result];
+            resultDisplay.style.color = colors[result];
+            resultDisplay.classList.add('show');
+        }
+
+
+        // ------------------------------------------------------------
+        // RESULT / CARD FLOW
+        // ------------------------------------------------------------
+
+        function handleSpinResult(result) {
+            document.getElementById('card-display').classList.remove('action-resolved');
+            document.getElementById('result-display')
+                .classList.remove('show');
+
+            // Bust applies to the person who actually spun.
+            if (result === 3) {
+                handleBust();
+                return;
+            }
+
+            let deck;
+            let deckName;
+
+            if (result === 0) {
+                // Emma / Player 1 owns this card and gets the next turn.
+                deck = emmasDeckCurrent;
+                deckName = 'emma';
+                actionPlayer = player1;
+                nextPlayer = player1;
+            } else if (result === 1) {
+                // Jim / Player 2 owns this card and gets the next turn.
+                deck = jimsDeckCurrent;
+                deckName = 'jim';
+                actionPlayer = player2;
+                nextPlayer = player2;
+            } else {
+                // Both perform the card; the original spinner keeps the turn.
+                deck = bothDeckCurrent;
+                deckName = 'both';
+                actionPlayer = spinOwner;
+                nextPlayer = spinOwner;
+            }
+
+            if (deck.length === 0) {
+                if (result === 0) {
+                    emmasDeckCurrent = [...emmasDeck];
+                    deck = emmasDeckCurrent;
+                } else if (result === 1) {
+                    jimsDeckCurrent = [...jimsDeck];
+                    deck = jimsDeckCurrent;
+                } else {
+                    bothDeckCurrent = [...bothDeck];
+                    deck = bothDeckCurrent;
+                }
+
+                updateDeckInfo();
+            }
+
+            const cardIndex =
+                Math.floor(Math.random() * deck.length);
+
+            currentCard = deck[cardIndex];
+            currentDeck = deckName;
+
+            clearCardPromptMode();
+
+            document.getElementById('card-text').textContent =
+                currentCard;
+
+            document.getElementById('card-display').style.display =
+                'flex';
+
+            document.getElementById('action-buttons').innerHTML = `
+                <button class="btn btn-success"
+                    onclick="beginAction()">Begin</button>
+                <button class="btn btn-secondary"
+                    onclick="skipCard()">Skip</button>
+            `;
+        }
+
+
+        function skipCard() {
+            awaitingBankOrGamble = false;
+            if (!currentCard || !currentDeck) return;
+
+            // No inches for a skipped card.
+            // Remove it from the active deck for the rest of this game.
+            // It is not added to completedCards, so Bust cannot restore it.
+            if (currentDeck === 'emma') {
+                emmasDeckCurrent =
+                    emmasDeckCurrent.filter(c => c !== currentCard);
+            } else if (currentDeck === 'jim') {
+                jimsDeckCurrent =
+                    jimsDeckCurrent.filter(c => c !== currentCard);
+            } else if (currentDeck === 'both') {
+                bothDeckCurrent =
+                    bothDeckCurrent.filter(c => c !== currentCard);
+            }
+
+            // If a named player skips, the next spin always passes
+            // to the other player, regardless of who originally flicked.
+            // A Both skip keeps the existing Both turn behaviour unchanged.
+            if (currentDeck === 'emma') {
+                nextPlayer = player2;
+            } else if (currentDeck === 'jim') {
+                nextPlayer = player1;
+            }
+
+            currentCard = null;
+            currentDeck = null;
+
+            updateDeckInfo();
+            finishCardTurn();
+        }
+
+
+        // ------------------------------------------------------------
+        // TIMER
+        // ------------------------------------------------------------
+
+        function beginAction() {
+            clearInterval(timerInterval);
+
+            timeRemaining = 30;
+
+            const spinnerContainer = document.getElementById('spinner-container');
+            const timerDisplay = document.getElementById('timer-display');
+            const timerBar = document.getElementById('timer-bar');
+
+            spinnerContainer.classList.add('timer-mode');
+
+            timerDisplay.style.display = 'flex';
+            timerBar.style.display = 'block';
+
+            timerDisplay.textContent = timeRemaining;
+            timerDisplay.classList.remove('countdown-pulse', 'final-second');
+
+            document.getElementById('timer-progress').style.width = '100%';
+            document.getElementById('action-buttons').innerHTML = '';
+
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+
+                timerDisplay.textContent = timeRemaining;
+                document.getElementById('timer-progress').style.width =
+                    Math.max(0, timeRemaining / 30 * 100) + '%';
+
+                if (timeRemaining <= 5 && timeRemaining >= 1) {
+                    playCountdownBeep(timeRemaining);
+
+                    timerDisplay.classList.remove('countdown-pulse');
+                    void timerDisplay.offsetWidth;
+                    timerDisplay.classList.add('countdown-pulse');
+                    timerDisplay.classList.toggle('final-second', timeRemaining === 1);
+                }
+
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+
+                    timerDisplay.classList.remove('countdown-pulse', 'final-second');
+                    playSound('alarm');
+
+                    setTimeout(showCompletedFailed, 500);
+                }
+            }, 1000);
+        }
+
+        function showCompletedFailed() {
+            // The timed action is over: remove the action card visually and
+            // reuse the fixed bottom control zone for the result choice.
+            document.getElementById('card-display').classList.add('action-resolved');
+            document.getElementById('spinner-container').classList.remove('timer-mode');
+            document.getElementById('timer-display').style.display =
+                'none';
+
+            document.getElementById('timer-bar').style.display =
+                'none';
+
+            document.getElementById('action-buttons').innerHTML = `
+                <button class="btn btn-success"
+                    onclick="cardCompleted()">Completed</button>
+                <button class="btn btn-danger"
+                    onclick="cardFailed()">Failed</button>
+            `;
+        }
+
+
+        // ------------------------------------------------------------
+        // CARD COMPLETION
+        // ------------------------------------------------------------
+
+        function cardCompleted() {
+            awaitingBankOrGamble = true;
+            const completedCard = currentCard;
+            const completedDeck = currentDeck;
+
+            if (completedDeck === 'both') {
+                player1.unbanked++;
+                player2.unbanked++;
+
+                player1.completedCards.push({
+                    card: completedCard,
+                    deck: completedDeck,
+                    shared: true
+                });
+
+                player2.completedCards.push({
+                    card: completedCard,
+                    deck: completedDeck,
+                    shared: true
+                });
+
+                animateMeterGain(player1);
+                animateMeterGain(player2);
+            } else {
+                actionPlayer.unbanked++;
+
+                actionPlayer.completedCards.push({
+                    card: completedCard,
+                    deck: completedDeck,
+                    shared: false
+                });
+
+                animateMeterGain(actionPlayer);
+            }
+
+            if (completedDeck === 'emma') {
+                emmasDeckCurrent =
+                    emmasDeckCurrent.filter(c => c !== completedCard);
+            } else if (completedDeck === 'jim') {
+                jimsDeckCurrent =
+                    jimsDeckCurrent.filter(c => c !== completedCard);
+            } else {
+                bothDeckCurrent =
+                    bothDeckCurrent.filter(c => c !== completedCard);
+            }
+
+            updateScores();
+            updateDeckInfo();
+
+            document.getElementById('action-buttons').innerHTML = `
+                <button class="btn btn-secondary"
+                    onclick="wankBank()">Wank Bank</button>
+                <button class="btn"
+                    onclick="gamble()">Gamble</button>
+            `;
+
+            document.getElementById('card-display').style.display =
+                'none';
+
+            currentCard = null;
+            currentDeck = null;
+
+            // Named result: that player takes over.
+            // Both result: nextPlayer is already the person who spun.
+            currentPlayer = nextPlayer;
+            otherPlayer = currentPlayer === player1 ? player2 : player1;
+            updateTurnIndicator();
+        }
+
+        function cardFailed() {
+            awaitingBankOrGamble = false;
+            currentCard = null;
+            currentDeck = null;
+            finishCardTurn();
+        }
+
+
+        function finishCardTurn() {
+            if (nextPlayer) {
+                currentPlayer = nextPlayer;
+                otherPlayer = currentPlayer === player1 ? player2 : player1;
+            }
+
+            actionPlayer = null;
+            nextPlayer = null;
+            spinOwner = null;
+
+            document.getElementById('timer-display').style.display = 'none';
+            document.getElementById('timer-bar').style.display = 'none';
+
+            updateTurnIndicator();
+            showSpinReady();
+        }
+
+
+        // ------------------------------------------------------------
+        // BANK / GAMBLE
+        // ------------------------------------------------------------
+
+        function wankBank() {
+            subtleHaptic(18);
+            awaitingBankOrGamble = false;
+            playSound('bank');
+
+            currentPlayer.banked += currentPlayer.unbanked;
+            currentPlayer.unbanked = 0;
+            currentPlayer.completedCards = [];
+
+            updateScores();
+
+            if (currentPlayer.banked >= 7) {
+                showWin();
+                return;
+            }
+
+            switchTurn();
+        }
+
+        function gamble() {
+            subtleHaptic(10);
+            awaitingBankOrGamble = false;
+            actionPlayer = null;
+            nextPlayer = null;
+            spinOwner = null;
+
+            showSpinReady();
+        }
+
+
+        // ------------------------------------------------------------
+        // BUST
+        // ------------------------------------------------------------
+
+        function handleBust() {
+            playSound('bust');
+
+            const bustedPlayer = spinOwner || currentPlayer;
+
+            bustedPlayer.completedCards.forEach(item => {
+                if (item.deck === 'emma') {
+                    if (!emmasDeckCurrent.includes(item.card)) {
+                        emmasDeckCurrent.push(item.card);
+                    }
+                } else if (item.deck === 'jim') {
+                    if (!jimsDeckCurrent.includes(item.card)) {
+                        jimsDeckCurrent.push(item.card);
+                    }
+                } else {
+                    // Both cards can be recorded against both players.
+                    // Never restore the same card twice.
+                    if (!bothDeckCurrent.includes(item.card)) {
+                        bothDeckCurrent.push(item.card);
+                    }
+                }
+            });
+
+            const lostInches = bustedPlayer.unbanked;
+
+            bustedPlayer.unbanked = 0;
+            bustedPlayer.completedCards = [];
+
+            updateScores();
+            animateMeterDrain(bustedPlayer);
+            updateDeckInfo();
+
+            document.getElementById('bust-inches-lost').textContent =
+                bustedPlayer.name +
+                ' lost ' +
+                lostInches +
+                ' unbanked inch' +
+                (lostInches === 1 ? '!' : 'es!');
+
+            currentPlayer = bustedPlayer === player1 ? player2 : player1;
+            otherPlayer = bustedPlayer;
+
+            actionPlayer = null;
+            nextPlayer = null;
+            spinOwner = null;
+
+            document.getElementById('game-screen')
+                .classList.remove('active');
+
+            document.getElementById('bust-screen')
+                .classList.add('active');
+        }
+
+        function continueAfterBust() {
+            document.getElementById('bust-screen')
+                .classList.remove('active');
+
+            document.getElementById('game-screen')
+                .classList.add('active');
+
+            updateTurnIndicator();
+            showSpinReady();
+        }
+
+
+        // ------------------------------------------------------------
+        // TURN MANAGEMENT
+        // ------------------------------------------------------------
+
+        function switchTurn() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+
+            isSpinning = false;
+            isDraggingSpinner = false;
+            actionPlayer = null;
+            nextPlayer = null;
+            spinOwner = null;
+
+            const temp = currentPlayer;
+            currentPlayer = otherPlayer;
+            otherPlayer = temp;
+
+            updateTurnIndicator();
+            showSpinReady();
+        }
+
+
+        // ------------------------------------------------------------
+        // WIN / RESET
+        // ------------------------------------------------------------
+
+        function showWin() {
+            subtleHaptic([20, 45, 20, 45, 35]);
+            playSound('win');
+
+            const winnerMessage =
+                currentPlayer === player1
+                    ? "Congratulations Em, you just took 7 inches and loved every minute 😉"
+                    : "Congratulations Jim you’ve got an impressive 7 inches 😉";
+
+            document.getElementById('winner-name').textContent =
+                winnerMessage;
+
+            document.getElementById('game-screen').classList.remove('active');
+            document.getElementById('win-screen').classList.add('active');
+        }
+
+        function resetGame() {
+            awaitingBankOrGamble = false;
+            document.getElementById('spinner-container').classList.remove('timer-mode');
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+
+            isSpinning = false;
+            isDraggingSpinner = false;
+            activePointerId = null;
+
+            document.getElementById('win-screen')
+                .classList.remove('active');
+
+            document.getElementById('splash-screen')
+                .classList.add('active');
+        }
+    </script>
+</body>
+</html>
